@@ -5,11 +5,16 @@ package io.rocketeer.server;
  * @date 6/26/12
  */
 
-import java.net.InetSocketAddress;
-import java.util.concurrent.Executors;
-
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.logging.InternalLoggerFactory;
+import org.jboss.netty.logging.JdkLoggerFactory;
+
+import java.net.InetSocketAddress;
+import java.util.concurrent.Executors;
+import java.util.logging.Level;
+import java.util.logging.LogManager;
+import java.util.logging.Logger;
 
 public class WebSocketServer {
 
@@ -17,6 +22,9 @@ public class WebSocketServer {
 
     public void start() {
         try {
+
+            InternalLoggerFactory.setDefaultFactory(new JdkLoggerFactory());
+            Logger.getLogger("io.netty").setLevel(Level.FINE);
 
             final ServerBootstrap
                     bootstrap = new ServerBootstrap(

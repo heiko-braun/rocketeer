@@ -7,8 +7,8 @@ package io.rocketeer.server;
 
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.websocket.DefaultWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocket.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -23,9 +23,9 @@ public final class EnvStatsProcessor {
     public static void handleRequest(final ChannelHandlerContext ctx, final WebSocketFrame frame) {
         try {
 
-            if (!frame.isText()) return;
+            if (! (frame instanceof TextWebSocketFrame) ) return;
 
-            String req = frame.getTextData();
+            String req = ((TextWebSocketFrame)frame).getText();
 
             System.out.println("serving: " + req);
 
@@ -72,7 +72,7 @@ public final class EnvStatsProcessor {
                                 append(Runtime.getRuntime().maxMemory());
 
                         if (channel.isOpen())
-                            channel.write(new DefaultWebSocketFrame(buf.toString()));
+                            channel.write(new TextWebSocketFrame(buf.toString()));
 
                         buf.setLength(0);
 
@@ -103,7 +103,7 @@ public final class EnvStatsProcessor {
                                 append(execCmd(channel, "cat /proc/stat"));
 
                         if (channel.isOpen())
-                            channel.write(new DefaultWebSocketFrame(buf.toString()));
+                            channel.write(new TextWebSocketFrame(buf.toString()));
 
                         buf.setLength(0);
 
@@ -134,7 +134,7 @@ public final class EnvStatsProcessor {
                                 append(execCmd(channel, "vmstat"));
 
                         if (channel.isOpen())
-                            channel.write(new DefaultWebSocketFrame(buf.toString()));
+                            channel.write(new TextWebSocketFrame(buf.toString()));
 
                         buf.setLength(0);
 
