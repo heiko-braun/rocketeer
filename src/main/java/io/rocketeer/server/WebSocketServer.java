@@ -32,14 +32,21 @@ public class WebSocketServer {
     Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
 
     private Integer portNumber = 8080;
+    private ServerBootstrap bootstrap;
+
+    public WebSocketServer(Integer portNumber) {
+        this.portNumber = portNumber;
+    }
+
+    public WebSocketServer() {
+    }
 
     public void start() {
         try {
             // netty logging
             InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
-            final ServerBootstrap
-                    bootstrap = new ServerBootstrap(
+            bootstrap = new ServerBootstrap(
                     new NioServerSocketChannelFactory(
                             Executors.newCachedThreadPool(),
                             Executors.newCachedThreadPool()
@@ -53,6 +60,7 @@ public class WebSocketServer {
             bootstrap.bind(new InetSocketAddress(portNumber));
 
             logger.info("-=[ STARTED ]=- on port#: " + portNumber);
+
 
         } catch (final Exception e) {
             e.printStackTrace();
@@ -73,6 +81,10 @@ public class WebSocketServer {
         final WebSocketServer websok = new WebSocketServer();
         // websok.setPortNumber( Integer.getInteger( args[0]) );
         websok.start();
+    }
+
+    public void stop() {
+        bootstrap.releaseExternalResources();
     }
 }
 
