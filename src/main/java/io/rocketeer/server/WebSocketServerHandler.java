@@ -44,10 +44,10 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private WebSocketServerHandshaker handshaker;
-    private EndpointSessions<NettySession> endpointSessions;
+    private InvocationContext<NettySession> invocationContext;
 
-    public WebSocketServerHandler(EndpointSessions endpointSessions) {
-        this.endpointSessions= endpointSessions;
+    public WebSocketServerHandler(InvocationContext invocationContext) {
+        this.invocationContext = invocationContext;
     }
 
     @Override
@@ -86,12 +86,13 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             sendHttpResponse(ctx, req, res);
             return;
         }
-        else {
-            // do we have a matching web context?
+        else
+        {
 
+            // find matching web context
             boolean didMatch = false;
 
-            for(String webContext : endpointSessions.getEndpoints().keySet())
+            for(String webContext : invocationContext.getEndpoints().keySet())
             {
                 if(webContext.equals(req.getUri()))
                 {
@@ -133,11 +134,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                     }
                     future.awaitUninterruptibly();
-                    final Endpoint endpoint = endpointSessions.getEndpoints().get(webContext);
+                    final Endpoint endpoint = invocationContext.getEndpoints().get(webContext);
 
                     // TODO: endpoint provider (late binding?)
                     final NettySession session = new NettySession(ctx, handshake, endpoint);
-                    endpointSessions.getSessions().add(session);
+                    invocationContext.getSessions().add(session);
 
                     // identify the delegate
                     endpoint.hasOpened(session);
@@ -150,7 +151,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
-            logger.debug("Closing connection {}", ((CloseWebSocketFrame) frame).getStatusCode());
+            logger.debug("Closing connection {}", ctx.getChannel().getId());
             handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
             return;
         } else if (frame instanceof PingWebSocketFrame) {
@@ -166,7 +167,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
          * delegate to actual endpoint implementation
          */
 
-        for(NettySession session : endpointSessions.getSessions())
+        for(NettySession session : invocationContext.getSessions())
         {
             for(MessageListener listener : session.getListeners())
             {

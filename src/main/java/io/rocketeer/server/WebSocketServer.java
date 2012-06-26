@@ -18,7 +18,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
@@ -29,18 +28,19 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
- * This server illustrates support for the different web socket specification versions and will work with:
+ * This server illustrates support for the different web socket specification versions
+ * and will work with:
  *
  * <ul>
- * <li>Safari 5+ (draft-ietf-hybi-thewebsocketprotocol-00)
- * <li>Chrome 6-13 (draft-ietf-hybi-thewebsocketprotocol-00)
- * <li>Chrome 14+ (draft-ietf-hybi-thewebsocketprotocol-10)
- * <li>Chrome 16+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
- * <li>Firefox 7+ (draft-ietf-hybi-thewebsocketprotocol-10)
- * <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
+ *  <li>Safari 5+ (draft-ietf-hybi-thewebsocketprotocol-00)
+ *  <li>Chrome 6-13 (draft-ietf-hybi-thewebsocketprotocol-00)
+ *  <li>Chrome 14+ (draft-ietf-hybi-thewebsocketprotocol-10)
+ *  <li>Chrome 16+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
+ *  <li>Firefox 7+ (draft-ietf-hybi-thewebsocketprotocol-10)
+ *  <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer implements ServerContainer, EndpointSessions<NettySession> {
+public class WebSocketServer implements ServerContainer, InvocationContext<NettySession> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
 
@@ -111,14 +111,6 @@ public class WebSocketServer implements ServerContainer, EndpointSessions<NettyS
         if(bossExecutor!=null) bossExecutor.shutdown();
         if(workerExecutor!=null) workerExecutor.shutdown();
         bootstrap.releaseExternalResources();
-    }
-
-    public Integer getPortNumber() {
-        return portNumber;
-    }
-
-    public void setPortNumber(final Integer portNumber) {
-        this.portNumber = portNumber;
     }
 }
 

@@ -10,7 +10,7 @@ import java.util.Map;
  * @author Heiko Braun
  * @date 6/26/12
  */
-public interface EndpointSessions<T extends Session> {
+public interface InvocationContext<T extends Session> {
 
     Map<String, Endpoint> getEndpoints();
 

@@ -15,10 +15,10 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 
-    private EndpointSessions endpointSessions;
+    private InvocationContext invocationContext;
 
-    public WebSocketServerPipelineFactory(EndpointSessions endpointSessions) {
-        this.endpointSessions = endpointSessions;
+    public WebSocketServerPipelineFactory(InvocationContext invocationManager) {
+        this.invocationContext = invocationContext;
     }
 
     public ChannelPipeline getPipeline() throws Exception {
@@ -28,7 +28,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("handler", new WebSocketServerHandler(endpointSessions));
+        pipeline.addLast("handler", new WebSocketServerHandler(invocationContext));
 
         // SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
         // engine.setUseClientMode(false);
