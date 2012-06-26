@@ -45,12 +45,9 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
         Channel ch = ctx.getChannel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (HttpResponse) e.getMessage());
-            callback.onError(new RuntimeException("Handshake failed."));
+            callback.onConnect(ctx);
             return;
         }
-
-        // indicate success
-        callback.onConnect(ctx);
 
         if (e.getMessage() instanceof HttpResponse) {
             HttpResponse response = (HttpResponse) e.getMessage();
