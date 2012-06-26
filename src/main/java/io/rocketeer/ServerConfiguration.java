@@ -11,4 +11,6 @@ public class ServerConfiguration extends EndpointConfiguration {
     public ServerConfiguration(URI uri) {
         super(uri);
     }
+
+
 }

@@ -9,6 +9,7 @@ import io.rocketeer.ClientConfiguration;
 import io.rocketeer.Endpoint;
 import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
+import io.rocketeer.Session;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -18,9 +19,13 @@ import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
+import java.util.concurrent.CopyOnWriteArrayList;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 /**
@@ -35,28 +40,42 @@ import java.util.concurrent.Executors;
  * <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer implements ServerContainer {
+public class WebSocketServer implements ServerContainer, EndpointSessions<NettySession> {
 
-    Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
+    private final static Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
+
+    private ExecutorService bossExecutor;
+    private ExecutorService workerExecutor;
 
     private Integer portNumber = 8080;
+
     private ServerBootstrap bootstrap;
+
     private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
+    private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
     }
 
-    public WebSocketServer() {
-    }
-
-    public void registerServer(Endpoint endpoint, ServerConfiguration ilc) {
-
-        endpoints.put(ilc.getURI().toString(), endpoint);
+    public void registerServer(Endpoint endpoint, ServerConfiguration config) {
+        endpoints.put(config.getURI().toString(), endpoint);
     }
 
     public void connect(Endpoint endpoint, ClientConfiguration olc) {
         throw new RuntimeException("Not implemented yet");
+    }
+
+    public Set<Session> getActiveSessions() {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    public Map<String, Endpoint> getEndpoints() {
+        return Collections.unmodifiableMap(endpoints);
+    }
+
+    public List<NettySession> getSessions() {
+        return sessions;
     }
 
     public void start() {
@@ -64,20 +83,23 @@ public class WebSocketServer implements ServerContainer {
             // netty logging
             InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
+            bossExecutor = Executors.newFixedThreadPool(5);
+            workerExecutor = Executors.newFixedThreadPool(25);
+
             bootstrap = new ServerBootstrap(
                     new NioServerSocketChannelFactory(
-                            Executors.newCachedThreadPool(),
-                            Executors.newCachedThreadPool()
+                            bossExecutor,
+                            workerExecutor
                     )
             );
 
             // Set up the event pipeline factory.
-            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(endpoints));
+            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(this));
 
             // Bind and start to accept incoming connections.
             bootstrap.bind(new InetSocketAddress(portNumber));
 
-            logger.info("Started server container on port#: " + portNumber);
+            logger.info("Started server container on port: " + portNumber);
 
 
         } catch (final Exception e) {
@@ -85,6 +107,11 @@ public class WebSocketServer implements ServerContainer {
         }
     }
 
+    public void stop() {
+        if(bossExecutor!=null) bossExecutor.shutdown();
+        if(workerExecutor!=null) workerExecutor.shutdown();
+        bootstrap.releaseExternalResources();
+    }
 
     public Integer getPortNumber() {
         return portNumber;
@@ -92,17 +119,6 @@ public class WebSocketServer implements ServerContainer {
 
     public void setPortNumber(final Integer portNumber) {
         this.portNumber = portNumber;
-    }
-
-    ////////////////////////////////////////////////////////////
-    public static void main(final String[] args) {
-        final WebSocketServer websok = new WebSocketServer();
-        // websok.setPortNumber( Integer.getInteger( args[0]) );
-        websok.start();
-    }
-
-    public void stop() {
-        bootstrap.releaseExternalResources();
     }
 }
 

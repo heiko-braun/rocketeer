@@ -32,10 +32,6 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.setContentLength;
@@ -48,18 +44,14 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private WebSocketServerHandshaker handshaker;
+    private EndpointSessions<NettySession> endpointSessions;
 
-    private List<NettySession> sessions = new ArrayList<NettySession>();
-    private Map<String, Endpoint> endpoints;
-
-    public WebSocketServerHandler(Map<String, Endpoint> endpoints) {
-        this.endpoints = endpoints;
+    public WebSocketServerHandler(EndpointSessions endpointSessions) {
+        this.endpointSessions= endpointSessions;
     }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
-
-        logger.debug("context/channel: {}/{}", ctx.getName(), ctx.getChannel().getId());
 
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
@@ -99,13 +91,14 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
             boolean didMatch = false;
 
-            for(String webContext : endpoints.keySet())
+            for(String webContext : endpointSessions.getEndpoints().keySet())
             {
                 if(webContext.equals(req.getUri()))
                 {
-                    logger.info("Requesting web context/id: '{}' => {}", webContext, ctx.getChannel().getId());
+                    logger.info("Matching web context/id: '{}' => {}", webContext, ctx.getChannel().getId());
                     didMatch = true;
                     beginHandshake(ctx, req, webContext);
+                    break;
                 }
             }
 
@@ -140,9 +133,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                     }
                     future.awaitUninterruptibly();
-                    final Endpoint endpoint = endpoints.get(webContext);
+                    final Endpoint endpoint = endpointSessions.getEndpoints().get(webContext);
+
+                    // TODO: endpoint provider (late binding?)
                     final NettySession session = new NettySession(ctx, handshake, endpoint);
-                    sessions.add(session);
+                    endpointSessions.getSessions().add(session);
 
                     // identify the delegate
                     endpoint.hasOpened(session);
@@ -171,7 +166,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
          * delegate to actual endpoint implementation
          */
 
-        for(NettySession session : sessions)
+        for(NettySession session : endpointSessions.getSessions())
         {
             for(MessageListener listener : session.getListeners())
             {

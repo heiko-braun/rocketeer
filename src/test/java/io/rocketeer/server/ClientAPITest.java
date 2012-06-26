@@ -49,14 +49,11 @@ public class ClientAPITest {
         client.connect().awaitUninterruptibly();
         Thread.sleep(3000);
 
-        //      assertTrue(callback.connected);
+        //assertTrue(callback.connected);
         client.send(TestCallback.TEST_MESSAGE);
-        client.send(TestCallback.TEST_MESSAGE+" (second)");
         Thread.sleep(3000);
         //    assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
         client.disconnect();
-        //  Thread.sleep(1000);
-
         //assertFalse(callback.connected);
     }
 
@@ -92,12 +89,12 @@ public class ClientAPITest {
         public Throwable failedWith = null;
 
         public void onConnect(ChannelHandlerContext context) {
-            System.out.println("Client connected: "+context.getChannel().getRemoteAddress());
+            System.out.println("Client connected: "+context.getChannel().getId());
             connected = true;
         }
 
         public void onDisconnect(ChannelHandlerContext client) {
-
+           connected = false;
         }
 
         public void onMessage(WebSocketClient client, WebSocketFrame frame) {

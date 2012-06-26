@@ -5,5 +5,7 @@ package io.rocketeer;
  * @date 6/26/12
  */
 public interface ClientContainer {
-    void connect(Endpoint endpoint, ClientConfiguration olc);
+    void connect(Endpoint endpoint, ClientConfiguration config);
+
+    java.util.Set<Session> getActiveSessions();
 }
