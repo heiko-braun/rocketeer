@@ -34,6 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
@@ -46,18 +47,20 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
-    private static final String WEBSOCKET_PATH = "/websocket";
     private WebSocketServerHandshaker handshaker;
 
-    private Endpoint delegate;
     private List<NettySession> sessions = new ArrayList<NettySession>();
+    private Map<String, Endpoint> endpoints;
 
-    public WebSocketServerHandler(Endpoint delegate) {
-        this.delegate = delegate;
+    public WebSocketServerHandler(Map<String, Endpoint> endpoints) {
+        this.endpoints = endpoints;
     }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+
+        logger.debug("context/channel: {}/{}", ctx.getName(), ctx.getChannel().getId());
+
         Object msg = e.getMessage();
         if (msg instanceof HttpRequest) {
             handleHttpRequest(ctx, (HttpRequest) msg);
@@ -78,7 +81,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         if (req.getUri().equals("/")) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
 
-            ChannelBuffer content = WebSocketIndexPage.getContent(getWebSocketLocation(req));
+            ChannelBuffer content = WebSocketIndexPage.getContent();
 
             res.setHeader(CONTENT_TYPE, "text/html; charset=UTF-8");
             setContentLength(res, content.readableBytes());
@@ -91,16 +94,42 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             sendHttpResponse(ctx, req, res);
             return;
         }
+        else {
+            // do we have a matching web context?
 
+            boolean didMatch = false;
+
+            for(String webContext : endpoints.keySet())
+            {
+                if(webContext.equals(req.getUri()))
+                {
+                    logger.info("Requesting web context/id: '{}' => {}", webContext, ctx.getChannel().getId());
+                    didMatch = true;
+                    beginHandshake(ctx, req, webContext);
+                }
+            }
+
+            if(!didMatch)
+            {
+                HttpResponse res = new DefaultHttpResponse(HTTP_1_1, NOT_FOUND);
+                sendHttpResponse(ctx, req, res);
+                return;
+            }
+
+        }
+
+    }
+
+    private void beginHandshake(final ChannelHandlerContext ctx, HttpRequest req, final String webContext) {
         // Handshake
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                getWebSocketLocation(req), null, false);
+                getWebSocketLocation(req, webContext), null, false);
+
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
             wsFactory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
         } else {
             final ChannelFuture handshake = handshaker.handshake(ctx.getChannel(), req);
-            //handshake.addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
 
             /**
              * Create session and notify endpoint
@@ -111,9 +140,12 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                     }
                     future.awaitUninterruptibly();
-                    final NettySession session = new NettySession(ctx, handshake);
+                    final Endpoint endpoint = endpoints.get(webContext);
+                    final NettySession session = new NettySession(ctx, handshake, endpoint);
                     sessions.add(session);
-                    delegate.hasOpened(session);
+
+                    // identify the delegate
+                    endpoint.hasOpened(session);
                 }
             });
         }
@@ -138,6 +170,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         /**
          * delegate to actual endpoint implementation
          */
+
         for(NettySession session : sessions)
         {
             for(MessageListener listener : session.getListeners())
@@ -177,8 +210,8 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         e.getChannel().close();
     }
 
-    private String getWebSocketLocation(HttpRequest req) {
-        return "ws://" + req.getHeader(HttpHeaders.Names.HOST) + WEBSOCKET_PATH;
+    private String getWebSocketLocation(HttpRequest req, String webContext) {
+        return "ws://" + req.getHeader(HttpHeaders.Names.HOST) + webContext;
     }
 }
 

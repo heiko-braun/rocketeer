@@ -14,7 +14,7 @@ import java.io.InputStreamReader;
 
 public class WebSocketIndexPage {
 
-    public static ChannelBuffer getContent(String webSocketLocation) {
+    public static ChannelBuffer getContent() {
         return ChannelBuffers.copiedBuffer(fetch("io/rocketeer/server/client.html"), CharsetUtil.UTF_8);
     }
 

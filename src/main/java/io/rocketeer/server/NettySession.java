@@ -1,11 +1,11 @@
 package io.rocketeer.server;
 
+import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.RemoteEndpoint;
 import io.rocketeer.Session;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 import java.io.IOException;
@@ -21,11 +21,14 @@ public class NettySession implements Session {
     private ChannelHandlerContext ctx;
 
     private List<MessageListener> listeners = new ArrayList<MessageListener>();
+    private String webContext;
+    private Endpoint endpoint;
 
-    public NettySession(ChannelHandlerContext ctx, ChannelFuture handshake) {
+    public NettySession(ChannelHandlerContext ctx, ChannelFuture handshake, Endpoint endpoint) {
 
         this.ctx = ctx;
         this.handshake = handshake;
+        this.endpoint = endpoint;
 
     }
 
@@ -47,6 +50,10 @@ public class NettySession implements Session {
 
     public void close() throws IOException {
 
+    }
+
+    Endpoint getEndpoint() {
+        return endpoint;
     }
 
     List<MessageListener> getListeners() {

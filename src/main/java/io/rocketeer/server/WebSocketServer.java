@@ -17,6 +17,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.concurrent.Executors;
 
 /**
@@ -37,6 +41,7 @@ public class WebSocketServer implements ServerContainer {
 
     private Integer portNumber = 8080;
     private ServerBootstrap bootstrap;
+    private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
@@ -47,6 +52,7 @@ public class WebSocketServer implements ServerContainer {
 
     public void registerServer(Endpoint endpoint, ServerConfiguration ilc) {
 
+        endpoints.put(ilc.getURI().toString(), endpoint);
     }
 
     public void connect(Endpoint endpoint, ClientConfiguration olc) {
@@ -66,7 +72,7 @@ public class WebSocketServer implements ServerContainer {
             );
 
             // Set up the event pipeline factory.
-            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory());
+            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(endpoints));
 
             // Bind and start to accept incoming connections.
             bootstrap.bind(new InetSocketAddress(portNumber));

@@ -1,5 +1,6 @@
 package io.rocketeer.server;
 
+import io.rocketeer.ServerConfiguration;
 import io.rocketeer.client.WebSocketCallback;
 import io.rocketeer.client.WebSocketClient;
 import io.rocketeer.client.WebSocketClientFactory;
@@ -19,8 +20,9 @@ public class ClientAPITest {
     private static WebSocketServer server;
 
     @BeforeClass
-    public static void setup() {
+    public static void setup() throws Exception {
         server = new WebSocketServer(port);
+        server.registerServer(new EchoEndpoint(), new ServerConfiguration(new URI("/websocket")));
         server.start();
     }
 
@@ -46,6 +48,7 @@ public class ClientAPITest {
 
   //      assertTrue(callback.connected);
         client.send(TestCallback.TEST_MESSAGE);
+        client.send(TestCallback.TEST_MESSAGE+" (second)");
         Thread.sleep(3000);
     //    assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
         client.disconnect();

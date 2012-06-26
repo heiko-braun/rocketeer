@@ -5,15 +5,24 @@ package io.rocketeer.server;
  * @date 6/26/12
  */
 
+import io.rocketeer.Endpoint;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
 import org.jboss.netty.handler.codec.http.HttpRequestDecoder;
 import org.jboss.netty.handler.codec.http.HttpResponseEncoder;
 
+import java.util.Map;
+
 import static org.jboss.netty.channel.Channels.pipeline;
 
 public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
+    private Map<String, Endpoint> endpoints;
+
+    public WebSocketServerPipelineFactory(Map<String, Endpoint> endpoints) {
+        this.endpoints = endpoints;
+    }
+
     public ChannelPipeline getPipeline() throws Exception {
 
         // Create a default pipeline implementation.
@@ -21,7 +30,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("handler", new WebSocketServerHandler(new EchoEndpoint()));
+        pipeline.addLast("handler", new WebSocketServerHandler(endpoints));
 
         // SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
         // engine.setUseClientMode(false);
