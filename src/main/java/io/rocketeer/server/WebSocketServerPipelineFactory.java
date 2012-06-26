@@ -17,7 +17,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 
     private InvocationContext invocationContext;
 
-    public WebSocketServerPipelineFactory(InvocationContext invocationManager) {
+    public WebSocketServerPipelineFactory(InvocationContext invocationContext) {
         this.invocationContext = invocationContext;
     }
 
