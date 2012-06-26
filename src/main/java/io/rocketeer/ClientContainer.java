@@ -1,5 +1,7 @@
 package io.rocketeer;
 
+import java.util.List;
+
 /**
  * @author Heiko Braun
  * @date 6/26/12
@@ -7,5 +9,5 @@ package io.rocketeer;
 public interface ClientContainer {
     void connect(Endpoint endpoint, ClientConfiguration config);
 
-    java.util.Set<Session> getActiveSessions();
+    List<? extends Session> getActiveSessions();
 }

@@ -22,7 +22,6 @@ import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,8 +65,8 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
         throw new RuntimeException("Not implemented yet");
     }
 
-    public Set<Session> getActiveSessions() {
-        throw new RuntimeException("Not implemented yet");
+    public List<? extends Session> getActiveSessions() {
+        return Collections.unmodifiableList(sessions);
     }
 
     public Map<String, Endpoint> getEndpoints() {
