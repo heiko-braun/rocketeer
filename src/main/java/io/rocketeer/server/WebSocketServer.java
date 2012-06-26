@@ -8,23 +8,23 @@ package io.rocketeer.server;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.logging.InternalLoggerFactory;
-import org.jboss.netty.logging.JdkLoggerFactory;
+import org.jboss.netty.logging.Slf4JLoggerFactory;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
-import java.util.logging.Level;
-import java.util.logging.LogManager;
-import java.util.logging.Logger;
 
 public class WebSocketServer {
+
+    Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
 
     private Integer portNumber = 8080;
 
     public void start() {
         try {
-
-            InternalLoggerFactory.setDefaultFactory(new JdkLoggerFactory());
-            Logger.getLogger("io.netty").setLevel(Level.FINE);
+            // netty logging
+            InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
             final ServerBootstrap
                     bootstrap = new ServerBootstrap(
@@ -40,7 +40,7 @@ public class WebSocketServer {
             // Bind and start to accept incoming connections.
             bootstrap.bind(new InetSocketAddress(portNumber));
 
-            System.out.println("-=[ STARTED ]=- on port#: " + portNumber);
+            logger.info("-=[ STARTED ]=- on port#: " + portNumber);
 
         } catch (final Exception e) {
             e.printStackTrace();

@@ -9,6 +9,8 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -17,6 +19,8 @@ import java.util.Iterator;
 
 // PoC WS server frame event emulator, naive impl!
 public final class EnvStatsProcessor {
+
+    final static Logger logger = LoggerFactory.getLogger(EnvStatsProcessor.class);
 
     private static final char DLM = '|';
 
@@ -27,7 +31,7 @@ public final class EnvStatsProcessor {
 
             String req = ((TextWebSocketFrame)frame).getText();
 
-            System.out.println("serving: " + req);
+            logger.debug("serving: " + req);
 
             if (req.equals("gc")) {
                 System.gc();
