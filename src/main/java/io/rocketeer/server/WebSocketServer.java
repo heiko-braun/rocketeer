@@ -15,6 +15,18 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.concurrent.Executors;
 
+/**
+ * This server illustrates support for the different web socket specification versions and will work with:
+ *
+ * <ul>
+ * <li>Safari 5+ (draft-ietf-hybi-thewebsocketprotocol-00)
+ * <li>Chrome 6-13 (draft-ietf-hybi-thewebsocketprotocol-00)
+ * <li>Chrome 14+ (draft-ietf-hybi-thewebsocketprotocol-10)
+ * <li>Chrome 16+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
+ * <li>Firefox 7+ (draft-ietf-hybi-thewebsocketprotocol-10)
+ * <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
+ * </ul>
+ */
 public class WebSocketServer {
 
     Logger logger = LoggerFactory.getLogger(WebSocketServer.class);

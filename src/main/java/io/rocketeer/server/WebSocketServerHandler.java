@@ -89,7 +89,6 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
     private void handleWebSocketFrame(final ChannelHandlerContext ctx, final WebSocketFrame frame) {
 
         // Check for closing frame
@@ -109,7 +108,6 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         EnvStatsProcessor.handleRequest(ctx, (TextWebSocketFrame)frame);
     }
 
-    ////////////////////////////////////////////////////////////////////////////////////////////////
 
     private void sendHttpResponse(ChannelHandlerContext ctx, HttpRequest req, HttpResponse res) {
         // Generate an error page if response status code is not OK (200).
@@ -130,7 +128,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
-        e.getCause().printStackTrace();
+        logger.error("Exception caught, closing channel", e.getCause());
         e.getChannel().close();
     }
 
