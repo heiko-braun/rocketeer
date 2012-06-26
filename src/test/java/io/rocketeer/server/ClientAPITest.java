@@ -4,9 +4,12 @@ import io.rocketeer.ServerConfiguration;
 import io.rocketeer.client.WebSocketCallback;
 import io.rocketeer.client.WebSocketClient;
 import io.rocketeer.client.WebSocketClientFactory;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketHandshakeException;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -46,15 +49,39 @@ public class ClientAPITest {
         client.connect().awaitUninterruptibly();
         Thread.sleep(3000);
 
-  //      assertTrue(callback.connected);
+        //      assertTrue(callback.connected);
         client.send(TestCallback.TEST_MESSAGE);
         client.send(TestCallback.TEST_MESSAGE+" (second)");
         Thread.sleep(3000);
-    //    assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
+        //    assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
         client.disconnect();
-      //  Thread.sleep(1000);
+        //  Thread.sleep(1000);
 
         //assertFalse(callback.connected);
+    }
+
+    @Test(expected = RuntimeException.class)
+    public void testInvalidWebContext() throws Exception {
+
+        WebSocketClientFactory clientFactory = new WebSocketClientFactory();
+        final TestCallback callback = new TestCallback();
+
+        WebSocketClient client = clientFactory.newClient(
+                new URI("ws://localhost:" + port + "/invalidContext"),
+                callback
+        );
+
+        final ChannelFuture connection= client.connect();
+        connection.awaitUninterruptibly();
+        Thread.sleep(3000);
+
+        if(callback.failedWith!=null)
+        {
+            System.out.println("Failed with: "+callback.failedWith.getMessage());
+            throw new RuntimeException(callback.failedWith.getMessage());
+        }
+
+        client.disconnect();
     }
 
     class TestCallback implements WebSocketCallback {
@@ -62,6 +89,7 @@ public class ClientAPITest {
         public static final String TEST_MESSAGE = "Testing this WebSocket";
         public boolean connected = false;
         public String messageReceived = null;
+        public Throwable failedWith = null;
 
         public void onConnect(ChannelHandlerContext context) {
             System.out.println("Client connected: "+context.getChannel().getRemoteAddress());
@@ -79,7 +107,7 @@ public class ClientAPITest {
         }
 
         public void onError(Throwable t) {
-            t.printStackTrace();
+            failedWith = t;
         }
     }
 }
