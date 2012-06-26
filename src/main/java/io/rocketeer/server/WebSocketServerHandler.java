@@ -114,7 +114,8 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     }
 
-    private void beginHandshake(final ChannelHandlerContext ctx, HttpRequest req, final String webContext) {
+    private void beginHandshake(final ChannelHandlerContext ctx, final HttpRequest req, final String webContext) {
+
         // Handshake
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
                 getWebSocketLocation(req, webContext), null, false);
@@ -133,15 +134,19 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                     if (!future.isSuccess()) {
                         Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                     }
-                    future.awaitUninterruptibly();
-                    final Endpoint endpoint = invocationContext.getEndpoints().get(webContext);
+                    else {
+                        future.awaitUninterruptibly();
+                        final Endpoint endpoint = invocationContext.getEndpoints().get(webContext);
 
-                    // TODO: endpoint provider (late binding?)
-                    final NettySession session = new NettySession(ctx, handshake, endpoint);
-                    invocationContext.getSessions().add(session);
+                        // TODO: endpoint provider (late binding?)
+                        final NettySession session = new NettySession(ctx, handshake, endpoint);
+                        session.setProtocolVersion(req.getHeader(HttpHeaders.Names.SEC_WEBSOCKET_VERSION));
 
-                    // identify the delegate
-                    endpoint.hasOpened(session);
+                        invocationContext.getSessions().add(session);
+
+                        // identify the delegate
+                        endpoint.hasOpened(session);
+                    }
                 }
             });
         }

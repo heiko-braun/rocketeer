@@ -8,5 +8,11 @@ public interface Session {
 
     void addMessageListener(MessageListener listener);
     RemoteEndpoint getRemote();
-    void close() throws java.io.IOException;
+    void close();
+
+    String getProtocolVersion();
+    String getSubprotocol();
+
+    long getTimeout();
+    void setTimeout(long seconds);
 }

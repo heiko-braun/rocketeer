@@ -24,6 +24,9 @@ public class NettySession implements Session {
     private String webContext;
     private Endpoint endpoint;
 
+    private String protocolVersion;
+    private String subprotocol;
+
     public NettySession(ChannelHandlerContext ctx, ChannelFuture handshake, Endpoint endpoint) {
 
         this.ctx = ctx;
@@ -48,7 +51,7 @@ public class NettySession implements Session {
         };
     }
 
-    public void close() throws IOException {
+    public void close(){
 
     }
 
@@ -58,5 +61,29 @@ public class NettySession implements Session {
 
     List<MessageListener> getListeners() {
         return listeners;
+    }
+
+    public String getProtocolVersion() {
+        return protocolVersion;
+    }
+
+    public String getSubprotocol() {
+        return subprotocol;
+    }
+
+    public void setProtocolVersion(String protocolVersion) {
+        this.protocolVersion = protocolVersion;
+    }
+
+    public void setSubprotocol(String subprotocol) {
+        this.subprotocol = subprotocol;
+    }
+
+    public long getTimeout() {
+        throw new RuntimeException("Not implemented yet");
+    }
+
+    public void setTimeout(long seconds) {
+        throw new RuntimeException("Not implemented yet");
     }
 }
