@@ -55,6 +55,9 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
+
+        // netty logging
+        InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
     public void registerServer(Endpoint endpoint, ServerConfiguration config) {
@@ -79,9 +82,6 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
 
     public void start() {
         try {
-            // netty logging
-            InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
-
             bossExecutor = Executors.newFixedThreadPool(5);
             workerExecutor = Executors.newFixedThreadPool(25);
 
@@ -102,7 +102,7 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
 
 
         } catch (final Exception e) {
-            e.printStackTrace();
+            logger.error("Failed to start server", e);
         }
     }
 
@@ -110,6 +110,7 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
         if(bossExecutor!=null) bossExecutor.shutdown();
         if(workerExecutor!=null) workerExecutor.shutdown();
         bootstrap.releaseExternalResources();
+        logger.info("Server successfully shutdown.");
     }
 }
 

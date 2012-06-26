@@ -36,7 +36,6 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
 
     @Override
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        System.out.println("WebSocket Client disconnected!");
         callback.onDisconnect(ctx);
     }
 
