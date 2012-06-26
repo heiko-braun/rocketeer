@@ -18,10 +18,10 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 
         // Create a default pipeline implementation.
         final ChannelPipeline pipeline = pipeline();
-        pipeline.addLast("decoder"   , new HttpRequestDecoder());
+        pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
-        pipeline.addLast("encoder"   , new HttpResponseEncoder());
-        pipeline.addLast("handler"   , new WebSocketServerHandler());
+        pipeline.addLast("encoder", new HttpResponseEncoder());
+        pipeline.addLast("handler", new WebSocketServerHandler());
 
         // SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
         // engine.setUseClientMode(false);

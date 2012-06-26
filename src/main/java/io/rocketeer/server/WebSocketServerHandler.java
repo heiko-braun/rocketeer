@@ -53,7 +53,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
         // Allow only GET .
         if (req.getMethod() != GET) {
-            sendHttpResponse( ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+            sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
             return;
         }
 
@@ -61,7 +61,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         if (req.getUri().equals("/")) {
             HttpResponse res = new DefaultHttpResponse(HTTP_1_1, OK);
 
-            ChannelBuffer content =  WebSocketIndexPage.getContent(getWebSocketLocation(req));
+            ChannelBuffer content = WebSocketIndexPage.getContent(getWebSocketLocation(req));
 
             res.setHeader(CONTENT_TYPE, "text/html; charset=UTF-8");
             setContentLength(res, content.readableBytes());
@@ -129,12 +129,12 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         }
 
         // Send an error page otherwise.
-        sendHttpResponse( ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
+        sendHttpResponse(ctx, req, new DefaultHttpResponse(HTTP_1_1, FORBIDDEN));
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     private void handleWebSocketFrame(final ChannelHandlerContext ctx, final WebSocketFrame frame) {
-        EnvStatsProcessor.handleRequest( ctx , frame );
+        EnvStatsProcessor.handleRequest(ctx, frame);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
