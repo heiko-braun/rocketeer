@@ -5,6 +5,10 @@ package io.rocketeer.server;
  * @date 6/26/12
  */
 
+import io.rocketeer.ClientConfiguration;
+import io.rocketeer.Endpoint;
+import io.rocketeer.ServerConfiguration;
+import io.rocketeer.ServerContainer;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -27,7 +31,7 @@ import java.util.concurrent.Executors;
  * <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer {
+public class WebSocketServer implements ServerContainer {
 
     Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
 
@@ -39,6 +43,14 @@ public class WebSocketServer {
     }
 
     public WebSocketServer() {
+    }
+
+    public void registerServer(Endpoint endpoint, ServerConfiguration ilc) {
+
+    }
+
+    public void connect(Endpoint endpoint, ClientConfiguration olc) {
+        throw new RuntimeException("Not implemented yet");
     }
 
     public void start() {
@@ -59,7 +71,7 @@ public class WebSocketServer {
             // Bind and start to accept incoming connections.
             bootstrap.bind(new InetSocketAddress(portNumber));
 
-            logger.info("-=[ STARTED ]=- on port#: " + portNumber);
+            logger.info("Started server container on port#: " + portNumber);
 
 
         } catch (final Exception e) {

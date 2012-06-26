@@ -29,7 +29,6 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
     private WebSocketCallback callback;
     private final WebSocketClientHandshaker handshaker;
 
-
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketCallback callback) {
         this.handshaker = handshaker;
         this.callback = callback;
@@ -62,10 +61,10 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
         // TODO
         if (frame instanceof PongWebSocketFrame)
         {
-            System.out.println("WebSocket Client received pong");
+            System.out.println("Client received pong frame");
         }
         else if (frame instanceof CloseWebSocketFrame) {
-            System.out.println("WebSocket Client received closing");
+            System.out.println("Client received closing frame");
             ch.close();
         }
         else

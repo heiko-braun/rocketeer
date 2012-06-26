@@ -5,11 +5,15 @@ package io.rocketeer.server;
  * @date 6/26/12
  */
 
+import io.rocketeer.Endpoint;
+import io.rocketeer.MessageListener;
+import io.rocketeer.TextMessageListener;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
@@ -28,19 +32,29 @@ import org.jboss.netty.util.CharsetUtil;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
-import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
-import static org.jboss.netty.handler.codec.http.HttpMethod.*;
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.CONTENT_TYPE;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.isKeepAlive;
+import static org.jboss.netty.handler.codec.http.HttpHeaders.setContentLength;
+import static org.jboss.netty.handler.codec.http.HttpMethod.GET;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
-import static org.jboss.netty.handler.codec.http.HttpVersion.*;
+import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
-
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private static final String WEBSOCKET_PATH = "/websocket";
     private WebSocketServerHandshaker handshaker;
+
+    private Endpoint delegate;
+    private List<NettySession> sessions = new ArrayList<NettySession>();
+
+    public WebSocketServerHandler(Endpoint delegate) {
+        this.delegate = delegate;
+    }
 
     @Override
     public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
@@ -52,7 +66,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         }
     }
 
-    private void handleHttpRequest(ChannelHandlerContext ctx, HttpRequest req) throws Exception {
+    private void handleHttpRequest(final ChannelHandlerContext ctx, HttpRequest req) throws Exception {
 
         // Allow only GET methods.
         if (req.getMethod() != GET) {
@@ -85,7 +99,23 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         if (handshaker == null) {
             wsFactory.sendUnsupportedWebSocketVersionResponse(ctx.getChannel());
         } else {
-            handshaker.handshake(ctx.getChannel(), req).addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
+            final ChannelFuture handshake = handshaker.handshake(ctx.getChannel(), req);
+            //handshake.addListener(WebSocketServerHandshaker.HANDSHAKE_LISTENER);
+
+            /**
+             * Create session and notify endpoint
+             */
+            handshake.addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    if (!future.isSuccess()) {
+                        Channels.fireExceptionCaught(future.getChannel(), future.getCause());
+                    }
+                    future.awaitUninterruptibly();
+                    final NettySession session = new NettySession(ctx, handshake);
+                    sessions.add(session);
+                    delegate.hasOpened(session);
+                }
+            });
         }
     }
 
@@ -105,7 +135,22 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             );
         }
 
-        EnvStatsProcessor.handleRequest(ctx, (TextWebSocketFrame)frame);
+        /**
+         * delegate to actual endpoint implementation
+         */
+        for(NettySession session : sessions)
+        {
+            for(MessageListener listener : session.getListeners())
+            {
+                if(listener instanceof TextMessageListener)
+                {
+                    ((TextMessageListener)listener).onMessage(
+                        ((TextWebSocketFrame)frame).getText()
+                    );
+                }
+            }
+        }
+
     }
 
 

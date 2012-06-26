@@ -42,10 +42,11 @@ public class ClientAPITest {
         );
 
         client.connect().awaitUninterruptibly();
-//        Thread.sleep(1000);
+        Thread.sleep(3000);
 
   //      assertTrue(callback.connected);
         client.send(TestCallback.TEST_MESSAGE);
+        Thread.sleep(3000);
     //    assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
         client.disconnect();
       //  Thread.sleep(1000);
@@ -60,7 +61,7 @@ public class ClientAPITest {
         public String messageReceived = null;
 
         public void onConnect(ChannelHandlerContext context) {
-            System.out.println("WebSocket connected "+context.getChannel().getRemoteAddress());
+            System.out.println("Client connected: "+context.getChannel().getRemoteAddress());
             connected = true;
         }
 
@@ -70,7 +71,7 @@ public class ClientAPITest {
 
         public void onMessage(WebSocketClient client, WebSocketFrame frame) {
             TextWebSocketFrame textFrame = (TextWebSocketFrame)frame;
-            System.out.println("Message:" + textFrame.getText());
+            System.out.println("Client recv: " + textFrame.getText());
             messageReceived = textFrame.getText();
         }
 

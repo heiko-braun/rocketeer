@@ -5,6 +5,6 @@ package io.rocketeer;
  * @date 6/26/12
  */
 public interface RemoteEndpoint {
-    void sendString(java.lang.String text) throws java.io.IOException;
-    void sendBytes(byte[] data) throws java.io.IOException;
+    void sendString(java.lang.String text);
+    void sendBytes(byte[] data);
 }
