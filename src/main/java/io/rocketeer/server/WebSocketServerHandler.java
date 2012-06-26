@@ -17,10 +17,16 @@ import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshaker;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketServerHandshakerFactory;
 import org.jboss.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.jboss.netty.handler.codec.http.HttpHeaders.*;
 import static org.jboss.netty.handler.codec.http.HttpHeaders.Names.*;
@@ -29,6 +35,9 @@ import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.*;
 
 public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
+
+
+    private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private static final String WEBSOCKET_PATH = "/websocket";
     private WebSocketServerHandshaker handshaker;
@@ -82,7 +91,22 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     ////////////////////////////////////////////////////////////////////////////////////////////////
     private void handleWebSocketFrame(final ChannelHandlerContext ctx, final WebSocketFrame frame) {
-        EnvStatsProcessor.handleRequest(ctx, frame);
+
+        // Check for closing frame
+        if (frame instanceof CloseWebSocketFrame) {
+            logger.debug("Closing connection {}", ((CloseWebSocketFrame) frame).getStatusCode());
+            handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
+            return;
+        } else if (frame instanceof PingWebSocketFrame) {
+            ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
+            return;
+        } else if (!(frame instanceof TextWebSocketFrame)) {
+            throw new UnsupportedOperationException(
+                    String.format("%s frame types not supported", frame.getClass().getName())
+            );
+        }
+
+        EnvStatsProcessor.handleRequest(ctx, (TextWebSocketFrame)frame);
     }
 
     ////////////////////////////////////////////////////////////////////////////////////////////////

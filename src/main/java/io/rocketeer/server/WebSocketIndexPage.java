@@ -19,7 +19,7 @@ public class WebSocketIndexPage {
     }
 
     private static String fetch(final String target) {
-        System.out.println("feching from CL: " + target);
+
         final StringBuffer buf = new StringBuffer();
         try {
             final BufferedReader reader =

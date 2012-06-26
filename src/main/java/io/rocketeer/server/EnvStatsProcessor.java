@@ -8,7 +8,6 @@ package io.rocketeer.server;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -24,12 +23,10 @@ public final class EnvStatsProcessor {
 
     private static final char DLM = '|';
 
-    public static void handleRequest(final ChannelHandlerContext ctx, final WebSocketFrame frame) {
+    public static void handleRequest(final ChannelHandlerContext ctx, final TextWebSocketFrame frame) {
         try {
 
-            if (! (frame instanceof TextWebSocketFrame) ) return;
-
-            String req = ((TextWebSocketFrame)frame).getText();
+            String req = frame.getText();
 
             logger.debug("serving: " + req);
 
