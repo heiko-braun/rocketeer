@@ -55,7 +55,7 @@ public class NettySession implements Session {
     }
 
     public void close(){
-        ctx.getChannel().write(new CloseWebSocketFrame());
+        //ctx.getChannel().write(new CloseWebSocketFrame());
         final ChannelFuture channelFuture = ctx.getChannel().close();
         channelFuture.addListener(new ChannelFutureListener() {
             public void operationComplete(ChannelFuture future) throws Exception {

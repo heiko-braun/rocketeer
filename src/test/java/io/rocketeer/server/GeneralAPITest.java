@@ -48,7 +48,7 @@ public class GeneralAPITest {
         assertEquals(EchoClient.TEST_MESSAGE, endpoint.getMessageReceived());
 
         endpoint.disconnect();
-        Thread.sleep(1000);
+        Thread.sleep(2000);
         assertFalse(endpoint.isConnected());
     }
 }
