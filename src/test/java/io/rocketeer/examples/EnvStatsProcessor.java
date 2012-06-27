@@ -1,4 +1,4 @@
-package io.rocketeer.server;
+package io.rocketeer.examples;
 
 /**
  * @author Heiko Braun

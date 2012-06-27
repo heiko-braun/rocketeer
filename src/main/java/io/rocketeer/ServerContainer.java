@@ -15,4 +15,6 @@ package io.rocketeer;
  */
 public interface ServerContainer extends ClientContainer {
     void registerServer(Endpoint endpoint, ServerConfiguration ilc);
+    void start();
+    void stop();
 }
