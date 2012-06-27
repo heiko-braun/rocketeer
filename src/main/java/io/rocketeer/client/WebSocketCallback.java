@@ -12,7 +12,7 @@ public interface WebSocketCallback {
 
     public void onDisconnect(ChannelHandlerContext context);
 
-    public void onMessage(WebSocketClient client, WebSocketFrame text);
+    public void onMessage(ChannelHandlerContext context, WebSocketFrame text);
 
-    public void onError(Throwable t);
+    public void onError(ChannelHandlerContext context, Throwable t);
 }

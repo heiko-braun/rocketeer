@@ -4,12 +4,11 @@ import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.RemoteEndpoint;
 import io.rocketeer.Session;
-import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
-import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 /**
@@ -17,20 +16,17 @@ import java.util.List;
  * @date 6/26/12
  */
 public class NettySession implements Session {
-    private ChannelFuture handshake;
+
     private ChannelHandlerContext ctx;
 
     private List<MessageListener> listeners = new ArrayList<MessageListener>();
-    private String webContext;
     private Endpoint endpoint;
 
     private String protocolVersion;
     private String subprotocol;
 
-    public NettySession(ChannelHandlerContext ctx, ChannelFuture handshake, Endpoint endpoint) {
-
+    public NettySession(ChannelHandlerContext ctx, Endpoint endpoint) {
         this.ctx = ctx;
-        this.handshake = handshake;
         this.endpoint = endpoint;
 
     }
@@ -55,12 +51,12 @@ public class NettySession implements Session {
 
     }
 
-    Endpoint getEndpoint() {
+    public Endpoint getEndpoint() {
         return endpoint;
     }
 
-    List<MessageListener> getListeners() {
-        return listeners;
+    public List<MessageListener> getListeners() {
+        return Collections.unmodifiableList(listeners);
     }
 
     public String getProtocolVersion() {
@@ -86,4 +82,14 @@ public class NettySession implements Session {
     public void setTimeout(long seconds) {
         throw new RuntimeException("Not implemented yet");
     }
+
+    public boolean isActive() {
+        return ctx!=null ? ctx.getChannel().isConnected() : false;
+    }
+
+    public Integer getId() {
+        return ctx.getChannel().getId();
+    }
+
+
 }

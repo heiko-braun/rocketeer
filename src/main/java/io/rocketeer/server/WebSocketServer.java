@@ -95,6 +95,9 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
             // Set up the event pipeline factory.
             bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(this));
 
+            bootstrap.setOption("tcpNoDelay", true);
+            bootstrap.setOption("keepAlive", true);
+
             // Bind and start to accept incoming connections.
             bootstrap.bind(new InetSocketAddress(portNumber));
 
@@ -107,8 +110,6 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
     }
 
     public void stop() {
-        if(bossExecutor!=null) bossExecutor.shutdown();
-        if(workerExecutor!=null) workerExecutor.shutdown();
         bootstrap.releaseExternalResources();
         logger.info("Server successfully shutdown.");
     }

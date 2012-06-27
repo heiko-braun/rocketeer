@@ -70,6 +70,9 @@ public class WebSocketClientFactory {
             }
         });
 
+        bootstrap.setOption("tcpNoDelay", true);
+        bootstrap.setOption("keepAlive", true);
+
         return new WebSocketClientImpl(bootstrap, uri, handshaker);
     }
 
@@ -107,10 +110,6 @@ public class WebSocketClientFactory {
 
         public ChannelFuture send(String text) {
             return ch.write(new TextWebSocketFrame(text));
-        }
-
-        public URI getUri() {
-            return uri;
         }
     }
 }

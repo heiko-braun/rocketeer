@@ -40,7 +40,7 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+    public void messageReceived(final ChannelHandlerContext ctx, MessageEvent e) throws Exception {
         Channel ch = ctx.getChannel();
         if (!handshaker.isHandshakeComplete()) {
             handshaker.finishHandshake(ch, (HttpResponse) e.getMessage());
@@ -69,14 +69,14 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
         else
         {
             // TODO
-            callback.onMessage(null, frame);
+            callback.onMessage(ctx, frame);
         }
     }
 
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e) throws Exception {
         final Throwable t = e.getCause();
-        callback.onError(t);
+        callback.onError(ctx, t);
         e.getChannel().close();
     }
 }

@@ -15,4 +15,8 @@ public interface Session {
 
     long getTimeout();
     void setTimeout(long seconds);
+
+    boolean isActive();
+
+    Integer getId();
 }

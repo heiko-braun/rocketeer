@@ -139,7 +139,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         final Endpoint endpoint = invocationContext.getEndpoints().get(webContext);
 
                         // TODO: endpoint provider (late binding?)
-                        final NettySession session = new NettySession(ctx, handshake, endpoint);
+                        final NettySession session = new NettySession(ctx, endpoint);
                         session.setProtocolVersion(req.getHeader(HttpHeaders.Names.SEC_WEBSOCKET_VERSION));
 
                         invocationContext.getSessions().add(session);
