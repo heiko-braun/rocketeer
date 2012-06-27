@@ -4,8 +4,13 @@ import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.RemoteEndpoint;
 import io.rocketeer.Session;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -16,6 +21,8 @@ import java.util.List;
  * @date 6/26/12
  */
 public class NettySession implements Session {
+
+    private final static Logger log = LoggerFactory.getLogger(NettySession.class);
 
     private ChannelHandlerContext ctx;
 
@@ -48,7 +55,16 @@ public class NettySession implements Session {
     }
 
     public void close(){
-
+        ctx.getChannel().write(new CloseWebSocketFrame());
+        final ChannelFuture channelFuture = ctx.getChannel().close();
+        channelFuture.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+                if(future.isSuccess())
+                    log.debug("Session close {}", getId());
+                else
+                    log.error("Failed to close Session {}", getId(), future.getCause());
+            }
+        });
     }
 
     public Endpoint getEndpoint() {

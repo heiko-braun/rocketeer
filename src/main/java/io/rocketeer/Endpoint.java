@@ -17,7 +17,7 @@ public abstract class Endpoint {
         log.debug("Session closed.");
     }
 
-    public void handleError(Exception e, Session s) {
+    public void handleError(Throwable e, Session s) {
         log.error("Unknown error", e);
     }
 

@@ -13,11 +13,12 @@ public class EchoClient extends Endpoint {
     public static final String TEST_MESSAGE = "Testing this WebSocket";
     private boolean connected = false;
     private String messageReceived = null;
+    private Session session;
 
     @Override
     public void hasOpened(Session session) {
         connected = true;
-
+        this.session = session;
         session.addMessageListener(new TextMessageListener() {
             public void onMessage(String text) {
                 System.out.println("Client recv: " + text);
@@ -26,6 +27,10 @@ public class EchoClient extends Endpoint {
         });
 
         session.getRemote().sendString(TEST_MESSAGE);
+    }
+
+    public void disconnect() {
+        session.close();
     }
 
     @Override

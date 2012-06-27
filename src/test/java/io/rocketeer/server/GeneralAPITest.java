@@ -4,13 +4,6 @@ import io.rocketeer.ClientConfiguration;
 import io.rocketeer.ClientContainer;
 import io.rocketeer.ClientFactory;
 import io.rocketeer.ServerConfiguration;
-import io.rocketeer.client.WebSocketCallback;
-import io.rocketeer.client.WebSocketClient;
-import io.rocketeer.client.WebSocketClientFactory;
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
@@ -43,23 +36,6 @@ public class GeneralAPITest {
     @Test
     public void webSocketClient() throws Exception {
 
-        /*WebSocketClientFactory clientFactory = new WebSocketClientFactory();
-        final TestCallback callback = new TestCallback();
-
-        WebSocketClient client = clientFactory.newClient(
-                new URI("ws://localhost:" + port + "/websocket"),
-                callback
-        );
-
-        client.connect().awaitUninterruptibly();
-
-        client.send(TestCallback.TEST_MESSAGE);
-        Thread.sleep(1000);
-        assertEquals(TestCallback.TEST_MESSAGE, callback.messageReceived);
-        client.disconnect();
-        Thread.sleep(500);
-        assertFalse(callback.connected);*/
-
         final ClientContainer client = ClientFactory.createClient();
         EchoClient endpoint = new EchoClient();
         client.connect(
@@ -67,10 +43,12 @@ public class GeneralAPITest {
                 new ClientConfiguration(new URI("ws://localhost:" + port + "/websocket"))
         );
 
-        Thread.sleep(3000);
+        Thread.sleep(1000);
         assertTrue(endpoint.isConnected());
         assertEquals(EchoClient.TEST_MESSAGE, endpoint.getMessageReceived());
 
-
+        endpoint.disconnect();
+        Thread.sleep(1000);
+        assertFalse(endpoint.isConnected());
     }
 }

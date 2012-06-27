@@ -10,6 +10,8 @@ import io.rocketeer.server.NettySession;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.Collections;
 import java.util.HashMap;
@@ -22,6 +24,8 @@ import java.util.concurrent.CopyOnWriteArrayList;
  * @date 6/27/12
  */
 public class ClientContainerImpl implements ClientContainer {
+
+    private final static Logger log = LoggerFactory.getLogger(ClientContainerImpl.class);
 
     private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
     private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
@@ -61,7 +65,7 @@ public class ClientContainerImpl implements ClientContainer {
                         NettySession session = findSession(context.getChannel().getId());
                         if(session!=null)
                         {
-                            session.getEndpoint().hasClosed(session);
+                            session.getEndpoint().handleError(t, session);
                         }
                     }
                 }
@@ -86,8 +90,11 @@ public class ClientContainerImpl implements ClientContainer {
 
     private void provideSession(ChannelHandlerContext context, Endpoint endpoint, ClientConfiguration config) {
         NettySession session = new NettySession(context, endpoint);
+        log.debug("Session created {}", session.getId());
+
         sessions.add(session);
         endpoints.put(config.getURI().toString(), endpoint);
+
         endpoint.hasOpened(session);
     }
 

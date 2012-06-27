@@ -3,7 +3,6 @@ package io.rocketeer.server;
 import io.rocketeer.Endpoint;
 import io.rocketeer.Session;
 import io.rocketeer.TextMessageListener;
-import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 
 /**
  * @author Heiko Braun
