@@ -15,10 +15,12 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.UpstreamMessageEvent;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
 import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
+import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
@@ -135,8 +137,21 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
             ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
             return;
         }
+        else {
 
-        callback.onMessage(ctx, frame);
+            if((frame instanceof TextWebSocketFrame)
+                || (frame instanceof BinaryWebSocketFrame))
+            {
+                // forward to invocation handler
+                ctx.sendUpstream(
+                        new UpstreamMessageEvent(
+                                ctx.getChannel(),
+                                frame,
+                                ctx.getChannel().getRemoteAddress()
+                        )
+                );
+            }
+        }
 
     }
 

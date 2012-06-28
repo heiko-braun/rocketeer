@@ -32,14 +32,11 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-
-        // todo: move after ws handler when invocation is abstracted into own handler
-        pipeline.addLast("exec", execHandler);
         pipeline.addLast("handler", new WebSocketServerHandler(callback));
 
-        // SSLEngine engine = SecureChatSslContextFactory.getServerContext().createSSLEngine();
-        // engine.setUseClientMode(false);
-        // pipeline.addLast("ssl", new SslHandler(engine));
+        // invocation happens behind execution handler
+        pipeline.addLast("exec", execHandler);
+        pipeline.addLast("invocation", new InvocationHandler(callback));
 
         return pipeline;
     }
