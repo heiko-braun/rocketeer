@@ -41,7 +41,7 @@ import java.util.concurrent.Executors;
  *  <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer implements ServerContainer, InvocationContext<NettySession> {
+public class WebSocketServer implements ServerContainer, InvocationManager<NettySession> {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
 

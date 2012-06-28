@@ -15,9 +15,9 @@ import static org.jboss.netty.channel.Channels.pipeline;
 
 public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 
-    private InvocationContext invocationContext;
+    private InvocationManager invocationContext;
 
-    public WebSocketServerPipelineFactory(InvocationContext invocationContext) {
+    public WebSocketServerPipelineFactory(InvocationManager invocationContext) {
         this.invocationContext = invocationContext;
     }
 

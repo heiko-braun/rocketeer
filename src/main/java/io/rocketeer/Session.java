@@ -18,5 +18,5 @@ public interface Session {
 
     boolean isActive();
 
-    Integer getId();
+    String getId();
 }

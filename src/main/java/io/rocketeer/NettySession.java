@@ -10,6 +10,7 @@ import org.slf4j.LoggerFactory;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.UUID;
 
 /**
  * @author Heiko Braun
@@ -27,10 +28,12 @@ public class NettySession implements Session {
     private String protocolVersion;
     private String subprotocol;
 
+    private String sessionId;
+
     public NettySession(ChannelHandlerContext ctx, Endpoint endpoint) {
         this.ctx = ctx;
         this.endpoint = endpoint;
-
+        this.sessionId = UUID.randomUUID().toString();
     }
 
     public void addMessageListener(final MessageListener listener) {
@@ -98,8 +101,8 @@ public class NettySession implements Session {
         return ctx!=null ? ctx.getChannel().isConnected() : false;
     }
 
-    public Integer getId() {
-        return ctx.getChannel().getId();
+    public String getId() {
+        return sessionId;
     }
 
 

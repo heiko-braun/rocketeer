@@ -6,7 +6,9 @@ import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
 import io.rocketeer.NettySession;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.slf4j.Logger;
@@ -29,6 +31,8 @@ public class ClientContainerImpl implements ClientContainer {
     private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
     private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
 
+    private static final ChannelLocal<String> channelSessionId = new ChannelLocal<String>();
+
     public void connect(final Endpoint endpoint, final ClientConfiguration config) {
         WebSocketClientFactory clientFactory = new WebSocketClientFactory();
 
@@ -40,7 +44,7 @@ public class ClientContainerImpl implements ClientContainer {
                     }
 
                     public void onDisconnect(ChannelHandlerContext context) {
-                        NettySession session = findSession(context.getChannel().getId());
+                        NettySession session = findSession(context.getChannel());
                         if(session!=null)
                         {
                             session.getEndpoint().hasClosed(session);
@@ -48,7 +52,8 @@ public class ClientContainerImpl implements ClientContainer {
                     }
 
                     public void onMessage(ChannelHandlerContext context, WebSocketFrame text) {
-                        NettySession session = findSession(context.getChannel().getId());
+                        NettySession session = findSession(context.getChannel());
+
                         if(session!=null)
                         {
                             for(MessageListener listener : session.getListeners())
@@ -61,7 +66,7 @@ public class ClientContainerImpl implements ClientContainer {
                     }
 
                     public void onError(ChannelHandlerContext context, Throwable t) {
-                        NettySession session = findSession(context.getChannel().getId());
+                        NettySession session = findSession(context.getChannel());
                         if(session!=null)
                         {
                             session.getEndpoint().handleError(t, session);
@@ -73,22 +78,29 @@ public class ClientContainerImpl implements ClientContainer {
         client.connect().awaitUninterruptibly();
     }
 
-    private NettySession findSession(Integer id)
+    private NettySession findSession(Channel channel)
     {
+        String sessionId = channelSessionId.get(channel);
         NettySession match = null;
         for(NettySession session : sessions)
         {
-            if(session.getId().equals(id))
+            if(session.getId().equals(sessionId))
             {
                 match = session;
                 break;
             }
         }
+
+        if(null==match)
+            log.warn("no session with id {}", sessionId);
+
         return match;
     }
 
     private void provideSession(ChannelHandlerContext context, Endpoint endpoint, ClientConfiguration config) {
         NettySession session = new NettySession(context, endpoint);
+        channelSessionId.set(context.getChannel(), session.getId());
+
         log.debug("Session created {}", session.getId());
 
         sessions.add(session);

@@ -13,6 +13,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
@@ -44,9 +45,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private WebSocketServerHandshaker handshaker;
-    private InvocationContext<NettySession> invocationContext;
+    private InvocationManager<NettySession> invocationContext;
 
-    public WebSocketServerHandler(InvocationContext invocationContext) {
+    private static final ChannelLocal<String> channelSessionId = new ChannelLocal<String>();
+
+    public WebSocketServerHandler(InvocationManager invocationContext) {
         this.invocationContext = invocationContext;
     }
 
@@ -138,8 +141,9 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
                         future.awaitUninterruptibly();
                         final Endpoint endpoint = invocationContext.getEndpoints().get(webContext);
 
-                        // TODO: endpoint provider (late binding?)
                         final NettySession session = new NettySession(ctx, endpoint);
+                        channelSessionId.set(ctx.getChannel(), session.getId());
+
                         session.setProtocolVersion(req.getHeader(HttpHeaders.Names.SEC_WEBSOCKET_VERSION));
 
                         invocationContext.getSessions().add(session);
@@ -172,17 +176,22 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         /**
          * delegate to actual endpoint implementation
          */
+        final String sessionId = channelSessionId.get(ctx.getChannel());
 
         for(NettySession session : invocationContext.getSessions())
         {
-            for(MessageListener listener : session.getListeners())
+            if(sessionId.equals(session.getId()))
             {
-                if(listener instanceof MessageListener.Text)
+                for(MessageListener listener : session.getListeners())
                 {
-                    ((MessageListener.Text)listener).onMessage(
-                        ((TextWebSocketFrame)frame).getText()
-                    );
+                    if(listener instanceof MessageListener.Text)
+                    {
+                        ((MessageListener.Text)listener).onMessage(
+                                ((TextWebSocketFrame)frame).getText()
+                        );
+                    }
                 }
+                break;
             }
         }
 
