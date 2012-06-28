@@ -1,4 +1,4 @@
-package io.rocketeer.client;
+package io.rocketeer;
 
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
@@ -7,7 +7,7 @@ import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
  * @author Heiko Braun
  * @date 6/26/12
  */
-public interface WebSocketCallback {
+public interface ContainerCallback {
     public void onConnect(ChannelHandlerContext context);
 
     public void onDisconnect(ChannelHandlerContext context);

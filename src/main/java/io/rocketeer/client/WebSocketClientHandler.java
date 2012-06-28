@@ -5,9 +5,9 @@ package io.rocketeer.client;
  * @date 6/26/12
  */
 
+import io.rocketeer.ContainerCallback;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
-import org.jboss.netty.channel.ChannelLocal;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
@@ -22,15 +22,15 @@ import org.jboss.netty.util.CharsetUtil;
 /**
  * Handles socket communication for a connected WebSocket client
  * Not intended for end-users. Please use {@link WebSocketClient}
- * or {@link WebSocketCallback} for controlling your client.
+ * or {@link io.rocketeer.ContainerCallback} for controlling your client.
  *
  */
 public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
 
-    private WebSocketCallback callback;
+    private ContainerCallback callback;
     private final WebSocketClientHandshaker handshaker;
 
-    public WebSocketClientHandler(WebSocketClientHandshaker handshaker, WebSocketCallback callback) {
+    public WebSocketClientHandler(WebSocketClientHandshaker handshaker, ContainerCallback callback) {
         this.handshaker = handshaker;
         this.callback = callback;
     }

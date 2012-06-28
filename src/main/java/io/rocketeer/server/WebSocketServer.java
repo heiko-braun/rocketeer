@@ -6,14 +6,19 @@ package io.rocketeer.server;
  */
 
 import io.rocketeer.ClientConfiguration;
+import io.rocketeer.ContainerCallback;
 import io.rocketeer.Endpoint;
+import io.rocketeer.MessageListener;
 import io.rocketeer.NettySession;
 import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
 import io.rocketeer.Session;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.logging.Slf4JLoggerFactory;
 import org.slf4j.Logger;
@@ -43,7 +48,7 @@ import java.util.concurrent.Executors;
  */
 public class WebSocketServer implements ServerContainer, InvocationManager<NettySession> {
 
-    private final static Logger logger = LoggerFactory.getLogger(WebSocketServer.class);
+    private final static Logger log = LoggerFactory.getLogger(WebSocketServer.class);
 
     private ExecutorService bossExecutor;
     private ExecutorService workerExecutor;
@@ -97,7 +102,50 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
             );
 
             // Set up the event pipeline factory.
-            bootstrap.setPipelineFactory(new WebSocketServerPipelineFactory(this));
+            bootstrap.setPipelineFactory(
+                    new WebSocketServerPipelineFactory(new ContainerCallback() {
+                        public void onConnect(ChannelHandlerContext context) {
+
+                            final Endpoint endpoint = endpoints.get(ChannelRef.webContext.get(context.getChannel()));
+
+                            final NettySession session = new NettySession(context, endpoint);
+                            ChannelRef.sessionId.set(context.getChannel(), session.getId());
+
+                            log.debug("Created session for web context '{}': {}",
+                                    ChannelRef.webContext.get(context.getChannel()), session.getId());
+
+                            sessions.add(session);
+
+                            // notify delegate
+                            endpoint.hasOpened(session);
+                        }
+
+                        public void onDisconnect(ChannelHandlerContext context) {
+                            final NettySession session = findSession(context.getChannel());
+                            if(session.isActive())
+                                session.close();
+                            sessions.remove(session);
+                        }
+
+                        public void onMessage(ChannelHandlerContext context, WebSocketFrame frame) {
+                            final NettySession session = findSession(context.getChannel());
+                            for(MessageListener listener : session.getListeners())
+                            {
+                                if(listener instanceof MessageListener.Text)
+                                {
+                                    ((MessageListener.Text)listener).onMessage(
+                                            ((TextWebSocketFrame)frame).getText()
+                                    );
+                                }
+                            }
+                        }
+
+                        public void onError(ChannelHandlerContext context, Throwable t) {
+
+                        }
+                    })
+            );
+
 
             bootstrap.setOption("tcpNoDelay", true);
             bootstrap.setOption("keepAlive", true);
@@ -105,18 +153,37 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
             // Bind and start to accept incoming connections.
             mainChannel = bootstrap.bind(new InetSocketAddress(portNumber));
 
-            logger.info("Started server container on port: " + portNumber);
+            log.info("Started server container on port: " + portNumber);
 
 
         } catch (final Exception e) {
-            logger.error("Failed to start server", e);
+            log.error("Failed to start server", e);
         }
+    }
+
+    private NettySession findSession(Channel channel)
+    {
+        String sessionId = ChannelRef.sessionId.get(channel);
+        NettySession match = null;
+        for(NettySession session : sessions)
+        {
+            if(session.getId().equals(sessionId))
+            {
+                match = session;
+                break;
+            }
+        }
+
+        if(null==match)
+            log.warn("no session with id {}", sessionId);
+
+        return match;
     }
 
     public void stop() {
         mainChannel.close();
         bootstrap.releaseExternalResources();
-        logger.info("Server successfully shutdown.");
+        log.info("Server successfully shutdown.");
     }
 }
 

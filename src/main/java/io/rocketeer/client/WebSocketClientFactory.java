@@ -5,6 +5,7 @@ package io.rocketeer.client;
  * @date 6/26/12
  */
 
+import io.rocketeer.ContainerCallback;
 import org.jboss.netty.bootstrap.ClientBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelFuture;
@@ -43,7 +44,7 @@ public class WebSocketClientFactory {
      * @param callback Callback interface to receive events
      * @return A WebSocket client. Call {@link WebSocketClient#connect()} to connect.
      */
-    public WebSocketClient newClient(final URI uri, final WebSocketCallback callback) {
+    public WebSocketClient newClient(final URI uri, final ContainerCallback callback) {
 
         final ClientBootstrap bootstrap = new ClientBootstrap(socketChannelFactory);
 

@@ -2,6 +2,7 @@ package io.rocketeer.client;
 
 import io.rocketeer.ClientConfiguration;
 import io.rocketeer.ClientContainer;
+import io.rocketeer.ContainerCallback;
 import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
@@ -38,7 +39,7 @@ public class ClientContainerImpl implements ClientContainer {
 
         WebSocketClient client = clientFactory.newClient(
                 config.getURI(),
-                new WebSocketCallback() {
+                new ContainerCallback() {
                     public void onConnect(ChannelHandlerContext context) {
                         provideSession(context, endpoint, config);
                     }
