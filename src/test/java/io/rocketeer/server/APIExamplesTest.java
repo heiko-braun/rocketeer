@@ -29,7 +29,7 @@ public class APIExamplesTest {
         server = Rocketeer.createServer(port);
         server.registerEndpoint(
                 new EchoEndpoint(),
-                new ServerConfiguration(new URI("/websocket"))
+                new ServerConfiguration(new URI("/echo"))
         );
         server.start();
     }
@@ -48,7 +48,7 @@ public class APIExamplesTest {
         EchoClient endpoint = new EchoClient();
         client.connect(
                 endpoint,
-                new ClientConfiguration(new URI("ws://localhost:" + port + "/websocket"))
+                new ClientConfiguration(new URI("ws://localhost:" + port + "/echo"))
         );
 
         Thread.sleep(1000);

@@ -134,10 +134,6 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         } else if (frame instanceof PingWebSocketFrame) {
             ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
             return;
-        } else if (!(frame instanceof TextWebSocketFrame)) {
-            throw new UnsupportedOperationException(
-                    String.format("%s frame types not supported", frame.getClass().getName())
-            );
         }
 
         callback.onMessage(ctx, frame);

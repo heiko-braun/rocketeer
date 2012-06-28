@@ -17,6 +17,7 @@ import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
+import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.logging.InternalLoggerFactory;
@@ -46,7 +47,7 @@ import java.util.concurrent.Executors;
  *  <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer implements ServerContainer, InvocationManager<NettySession> {
+public class WebSocketServer implements ServerContainer {
 
     private final static Logger log = LoggerFactory.getLogger(WebSocketServer.class);
 
@@ -81,14 +82,6 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
         return Collections.unmodifiableList(sessions);
     }
 
-    public Map<String, Endpoint> getEndpoints() {
-        return Collections.unmodifiableMap(endpoints);
-    }
-
-    public List<NettySession> getSessions() {
-        return sessions;
-    }
-
     public void start() {
         try {
             bossExecutor = Executors.newFixedThreadPool(5);
@@ -110,11 +103,10 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
 
                             final NettySession session = new NettySession(context, endpoint);
                             ChannelRef.sessionId.set(context.getChannel(), session.getId());
-
-                            log.debug("Created session for web context '{}': {}",
-                                    ChannelRef.webContext.get(context.getChannel()), session.getId());
-
                             sessions.add(session);
+
+                            log.debug("Created session on web context '{}': {}",
+                                    ChannelRef.webContext.get(context.getChannel()), session.getId());
 
                             // notify delegate
                             endpoint.hasOpened(session);
@@ -124,10 +116,24 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
                             final NettySession session = findSession(context.getChannel());
                             if(session.isActive())
                                 session.close();
+
+                            log.debug("Session removed {}", session.getId());
+
                             sessions.remove(session);
                         }
 
                         public void onMessage(ChannelHandlerContext context, WebSocketFrame frame) {
+
+                            // we only support common frames at tis level
+                            if (!(frame instanceof TextWebSocketFrame)
+                                    || (frame instanceof BinaryWebSocketFrame)) {
+
+                                throw new UnsupportedOperationException(
+                                        String.format("%s frame types not supported", frame.getClass().getName())
+                                );
+                            }
+
+                            // get session and invoke listeners
                             final NettySession session = findSession(context.getChannel());
                             for(MessageListener listener : session.getListeners())
                             {
@@ -141,7 +147,7 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
                         }
 
                         public void onError(ChannelHandlerContext context, Throwable t) {
-
+                            log.error("Unknown error ({})", ChannelRef.sessionId.get(context.getChannel()), t);
                         }
                     })
             );
@@ -175,7 +181,7 @@ public class WebSocketServer implements ServerContainer, InvocationManager<Netty
         }
 
         if(null==match)
-            log.warn("no session with id {}", sessionId);
+            throw new RuntimeException(String.format("No session with id %s", sessionId));
 
         return match;
     }
