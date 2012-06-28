@@ -1,9 +1,5 @@
-package io.rocketeer.server;
+package io.rocketeer;
 
-import io.rocketeer.Endpoint;
-import io.rocketeer.MessageListener;
-import io.rocketeer.RemoteEndpoint;
-import io.rocketeer.Session;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;

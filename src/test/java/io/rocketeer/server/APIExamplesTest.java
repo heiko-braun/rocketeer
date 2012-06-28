@@ -27,7 +27,7 @@ public class APIExamplesTest {
     @BeforeClass
     public static void setup() throws Exception {
         server = Rocketeer.createServer(port);
-        server.registerServer(
+        server.registerEndpoint(
                 new EchoEndpoint(),
                 new ServerConfiguration(new URI("/websocket"))
         );

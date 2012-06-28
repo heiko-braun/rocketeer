@@ -7,7 +7,7 @@ package io.rocketeer.server;
 
 import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
-import io.rocketeer.TextMessageListener;
+import io.rocketeer.NettySession;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -158,6 +158,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         if (frame instanceof CloseWebSocketFrame) {
             logger.debug("Closing connection {}", ctx.getChannel().getId());
             handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
+            ctx.getChannel().close();
             return;
         } else if (frame instanceof PingWebSocketFrame) {
             ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
@@ -176,9 +177,9 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
         {
             for(MessageListener listener : session.getListeners())
             {
-                if(listener instanceof TextMessageListener)
+                if(listener instanceof MessageListener.Text)
                 {
-                    ((TextMessageListener)listener).onMessage(
+                    ((MessageListener.Text)listener).onMessage(
                         ((TextWebSocketFrame)frame).getText()
                     );
                 }

@@ -6,4 +6,11 @@ package io.rocketeer;
  */
 public interface MessageListener {
 
+    interface Text extends MessageListener {
+        void onMessage(String text);
+    }
+
+    interface Binary extends MessageListener {
+        void onMessage(byte[] data);
+    }
 }

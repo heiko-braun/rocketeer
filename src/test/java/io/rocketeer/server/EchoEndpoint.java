@@ -1,8 +1,8 @@
 package io.rocketeer.server;
 
 import io.rocketeer.Endpoint;
+import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
-import io.rocketeer.TextMessageListener;
 
 /**
  * @author Heiko Braun
@@ -12,7 +12,7 @@ public class EchoEndpoint extends Endpoint {
     @Override
     public void hasOpened(final Session session) {
 
-        session.addMessageListener(new TextMessageListener() {
+        session.addMessageListener(new MessageListener.Text() {
             public void onMessage(String text) {
 
                 // response

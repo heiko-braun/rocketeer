@@ -7,10 +7,12 @@ package io.rocketeer.server;
 
 import io.rocketeer.ClientConfiguration;
 import io.rocketeer.Endpoint;
+import io.rocketeer.NettySession;
 import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
 import io.rocketeer.Session;
 import org.jboss.netty.bootstrap.ServerBootstrap;
+import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.logging.Slf4JLoggerFactory;
@@ -53,6 +55,8 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
     private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
     private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
 
+    private Channel mainChannel;
+
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
 
@@ -60,7 +64,7 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
     }
 
-    public void registerServer(Endpoint endpoint, ServerConfiguration config) {
+    public void registerEndpoint(Endpoint endpoint, ServerConfiguration config) {
         endpoints.put(config.getURI().toString(), endpoint);
     }
 
@@ -99,7 +103,7 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
             bootstrap.setOption("keepAlive", true);
 
             // Bind and start to accept incoming connections.
-            bootstrap.bind(new InetSocketAddress(portNumber));
+            mainChannel = bootstrap.bind(new InetSocketAddress(portNumber));
 
             logger.info("Started server container on port: " + portNumber);
 
@@ -110,6 +114,7 @@ public class WebSocketServer implements ServerContainer, InvocationContext<Netty
     }
 
     public void stop() {
+        mainChannel.close();
         bootstrap.releaseExternalResources();
         logger.info("Server successfully shutdown.");
     }

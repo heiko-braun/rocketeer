@@ -5,8 +5,7 @@ import io.rocketeer.ClientContainer;
 import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
-import io.rocketeer.TextMessageListener;
-import io.rocketeer.server.NettySession;
+import io.rocketeer.NettySession;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
@@ -54,7 +53,7 @@ public class ClientContainerImpl implements ClientContainer {
                         {
                             for(MessageListener listener : session.getListeners())
                             {
-                                ((TextMessageListener)listener).onMessage(
+                                ((MessageListener.Text)listener).onMessage(
                                         ((TextWebSocketFrame)text).getText()
                                 );
                             }

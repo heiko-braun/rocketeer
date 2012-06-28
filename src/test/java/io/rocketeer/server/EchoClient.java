@@ -1,8 +1,8 @@
 package io.rocketeer.server;
 
 import io.rocketeer.Endpoint;
+import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
-import io.rocketeer.TextMessageListener;
 
 /**
  * @author Heiko Braun
@@ -19,7 +19,7 @@ public class EchoClient extends Endpoint {
     public void hasOpened(Session session) {
         connected = true;
         this.session = session;
-        session.addMessageListener(new TextMessageListener() {
+        session.addMessageListener(new MessageListener.Text() {
             public void onMessage(String text) {
                 System.out.println("Client recv: " + text);
                 messageReceived = text;

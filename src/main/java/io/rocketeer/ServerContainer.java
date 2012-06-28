@@ -6,7 +6,7 @@ package io.rocketeer;
  *  ServerContainer serverContainer = WebSocketImplementation.getServerContainer();
  *  Endpoint helloServer = new HelloServer();
  *  ServerConfiguration serverConfig = new ServerConfiguration( new URI("/hello") );
- *  serverContainer.registerServer(helloServer, serverConfig);
+ *  serverContainer.registerEndpoint(helloServer, serverConfig);
  * </pre>
  *
  * @author Heiko Braun
@@ -14,7 +14,7 @@ package io.rocketeer;
  *
  */
 public interface ServerContainer extends ClientContainer {
-    void registerServer(Endpoint endpoint, ServerConfiguration ilc);
+    void registerEndpoint(Endpoint endpoint, ServerConfiguration ilc);
     void start();
     void stop();
 }
