@@ -20,6 +20,8 @@ import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
+import org.jboss.netty.handler.execution.ExecutionHandler;
+import org.jboss.netty.handler.execution.OrderedMemoryAwareThreadPoolExecutor;
 import org.jboss.netty.logging.InternalLoggerFactory;
 import org.jboss.netty.logging.Slf4JLoggerFactory;
 import org.slf4j.Logger;
@@ -62,6 +64,7 @@ public class WebSocketServer implements ServerContainer {
     private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
 
     private Channel mainChannel;
+    private ExecutionHandler executionHandler;
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
@@ -94,9 +97,13 @@ public class WebSocketServer implements ServerContainer {
                     )
             );
 
+            // TODO: How the the core pool size relate to the worker executor? Does it at all?
+            executionHandler = new ExecutionHandler(
+                         new OrderedMemoryAwareThreadPoolExecutor(16, 0, 0));
+
             // Set up the event pipeline factory.
             bootstrap.setPipelineFactory(
-                    new WebSocketServerPipelineFactory(new ContainerCallback() {
+                    new WebSocketServerPipelineFactory(executionHandler, new ContainerCallback() {
                         public void onConnect(ChannelHandlerContext context) {
 
                             final Endpoint endpoint = endpoints.get(ChannelRef.webContext.get(context.getChannel()));
@@ -189,6 +196,7 @@ public class WebSocketServer implements ServerContainer {
     public void stop() {
         mainChannel.close();
         bootstrap.releaseExternalResources();
+        executionHandler.releaseExternalResources();
         log.info("Server successfully shutdown.");
     }
 }
