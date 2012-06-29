@@ -19,10 +19,15 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
 
     private ContainerCallback callback;
     private ExecutionHandler execHandler;
+    private ProtocolRegistry registry;
 
-    public WebSocketServerPipelineFactory(ExecutionHandler executionHandler, ContainerCallback callback) {
+    public WebSocketServerPipelineFactory(
+            ExecutionHandler executionHandler,
+            ContainerCallback callback, ProtocolRegistry registry) {
         this.callback = callback;
         this.execHandler = executionHandler;
+        this.registry = registry;
+
     }
 
     public ChannelPipeline getPipeline() throws Exception {
@@ -32,7 +37,7 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("decoder", new HttpRequestDecoder());
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
-        pipeline.addLast("handler", new WebSocketServerHandler(callback));
+        pipeline.addLast("handler", new WebSocketServerHandler(callback, registry));
 
         // invocation happens behind execution handler
         pipeline.addLast("exec", execHandler);

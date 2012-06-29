@@ -10,4 +10,5 @@ public class ChannelRef {
 
     public static final ChannelLocal<String> sessionId = new ChannelLocal<String>();
     public static final ChannelLocal<String> webContext = new ChannelLocal<String>();
+    public static final ChannelLocal<String> subprotocol = new ChannelLocal<String>();
 }

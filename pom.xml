@@ -51,6 +51,18 @@
             <scope>test</scope>
         </dependency>
 
+        <dependency>
+            <groupId>org.projectodd.stilts</groupId>
+            <artifactId>stilts-stomp-client</artifactId>
+            <version>0.1.29-SNAPSHOT</version>
+            <!--exclusions>
+                <exclusion>
+                    <groupId>org.jboss.logging</groupId>
+                    <artifactId>jboss-logging</artifactId>
+                </exclusion>
+            </exclusions-->
+        </dependency>
+
     </dependencies>
 </project>
 

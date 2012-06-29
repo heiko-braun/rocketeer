@@ -45,9 +45,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
     private WebSocketServerHandshaker handshaker;
     private ContainerCallback callback;
+    private ProtocolRegistry protocolRegistry;
 
-    public WebSocketServerHandler(ContainerCallback callback) {
+    public WebSocketServerHandler(ContainerCallback callback, ProtocolRegistry protocolRegistry) {
         this.callback = callback;
+        this.protocolRegistry = protocolRegistry;
     }
 
     @Override
@@ -100,7 +102,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
         // Handshake
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                getWebSocketLocation(req), null, false);
+                getWebSocketLocation(req), protocolRegistry.getSupportedSubprotocols(), false);
 
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {
@@ -109,6 +111,9 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
             // if the handshake fails it will throw en exception ...
             final ChannelFuture handshake = handshaker.handshake(ctx.getChannel(), req);
+
+            // at this point the subprotocol should be selected
+            ChannelRef.subprotocol.set(ctx.getChannel(), handshaker.getSelectedSubprotocol());
 
             // notify container to create the session
             handshake.addListener(new ChannelFutureListener() {

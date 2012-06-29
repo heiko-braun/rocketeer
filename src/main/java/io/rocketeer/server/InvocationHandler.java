@@ -13,7 +13,7 @@ import org.slf4j.LoggerFactory;
  * @date 6/28/12
  */
 public class InvocationHandler extends SimpleChannelUpstreamHandler {
-    private final static Logger logger = LoggerFactory.getLogger(InvocationHandler.class);
+    private final static Logger log = LoggerFactory.getLogger(InvocationHandler.class);
     private ContainerCallback callback;
 
     public InvocationHandler(ContainerCallback callback) {
@@ -22,6 +22,8 @@ public class InvocationHandler extends SimpleChannelUpstreamHandler {
 
     @Override
         public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+
+            log.debug("Selected subprotocol '{}'", ChannelRef.subprotocol.get(ctx.getChannel()));
 
             Object msg = e.getMessage();
             if (msg instanceof WebSocketFrame) {

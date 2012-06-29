@@ -49,7 +49,7 @@ import java.util.concurrent.Executors;
  *  <li>Firefox 11+ (RFC 6455 aka draft-ietf-hybi-thewebsocketprotocol-17)
  * </ul>
  */
-public class WebSocketServer implements ServerContainer {
+public class WebSocketServer implements ServerContainer, ProtocolRegistry {
 
     private final static Logger log = LoggerFactory.getLogger(WebSocketServer.class);
 
@@ -65,6 +65,8 @@ public class WebSocketServer implements ServerContainer {
 
     private Channel mainChannel;
     private ExecutionHandler executionHandler;
+
+    private final static String subprotocols = "stomp";
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
@@ -83,6 +85,10 @@ public class WebSocketServer implements ServerContainer {
 
     public List<? extends Session> getActiveSessions() {
         return Collections.unmodifiableList(sessions);
+    }
+
+    public String getSupportedSubprotocols() {
+        return subprotocols;
     }
 
     public void start() {
@@ -106,7 +112,10 @@ public class WebSocketServer implements ServerContainer {
                     new WebSocketServerPipelineFactory(executionHandler, new ContainerCallback() {
                         public void onConnect(ChannelHandlerContext context) {
 
-                            final Endpoint endpoint = endpoints.get(ChannelRef.webContext.get(context.getChannel()));
+                            final String webContext = ChannelRef.webContext.get(context.getChannel());
+                            final Endpoint endpoint = endpoints.get(webContext);
+                            if(null==endpoint)
+                                throw new RuntimeException("Invalid endpoint "+ webContext);
 
                             final NettySession session = new NettySession(context, endpoint);
                             ChannelRef.sessionId.set(context.getChannel(), session.getId());
@@ -156,7 +165,7 @@ public class WebSocketServer implements ServerContainer {
                         public void onError(ChannelHandlerContext context, Throwable t) {
                             log.error("Unknown error ({})", ChannelRef.sessionId.get(context.getChannel()), t);
                         }
-                    })
+                    }, this)
             );
 
 
