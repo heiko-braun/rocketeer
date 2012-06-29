@@ -6,6 +6,7 @@ package io.rocketeer.server;
  */
 
 import io.rocketeer.ContainerCallback;
+import io.rocketeer.protocol.ProtocolDef;
 import org.jboss.netty.buffer.ChannelBuffer;
 import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
@@ -58,13 +59,11 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
     @Override
     public void disconnectRequested(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 
-        // TODO: closing can be initiated from both sides
         if(!isClosing && ctx.getChannel().isOpen())
         {
             sendClosingFrame(ctx, new CloseWebSocketFrame());
             isClosing = true;
         }
-
     }
 
     private void sendClosingFrame(final ChannelHandlerContext ctx, CloseWebSocketFrame frame) {
@@ -130,11 +129,24 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
 
     }
 
+    private String getProtocolString() {
+        StringBuffer sb = new StringBuffer();
+        int i=0;
+        for(ProtocolDef def : protocolRegistry.getSupportedSubprotocols())
+        {
+            sb.append(def.getName());
+            if(i<protocolRegistry.getSupportedSubprotocols().size()-1)
+                sb.append(", ");
+            i++;
+        }
+        return sb.toString();
+    }
+
     private void beginHandshake(final ChannelHandlerContext ctx, final HttpRequest req) {
 
         // Handshake
         WebSocketServerHandshakerFactory wsFactory = new WebSocketServerHandshakerFactory(
-                getWebSocketLocation(req), protocolRegistry.getSupportedSubprotocols(), false);
+                getWebSocketLocation(req), getProtocolString(), false);
 
         handshaker = wsFactory.newHandshaker(req);
         if (handshaker == null) {

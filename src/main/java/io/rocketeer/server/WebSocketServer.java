@@ -13,6 +13,8 @@ import io.rocketeer.NettySession;
 import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
 import io.rocketeer.Session;
+import io.rocketeer.protocol.ProtocolDef;
+import io.rocketeer.protocol.stomp.StompProtocolDef;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -30,8 +32,10 @@ import org.slf4j.LoggerFactory;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 import java.util.concurrent.CopyOnWriteArrayList;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
@@ -66,13 +70,17 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
     private Channel mainChannel;
     private ExecutionHandler executionHandler;
 
-    private final static String subprotocols = "stomp";
+    private Set<ProtocolDef> protocols = new HashSet<ProtocolDef>();
 
     public WebSocketServer(Integer portNumber) {
         this.portNumber = portNumber;
 
         // netty logging
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
+
+
+        // supported subprotocols
+        protocols.add(new StompProtocolDef());
     }
 
     public void registerEndpoint(Endpoint endpoint, ServerConfiguration config) {
@@ -87,8 +95,8 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
         return Collections.unmodifiableList(sessions);
     }
 
-    public String getSupportedSubprotocols() {
-        return subprotocols;
+    public Set<ProtocolDef> getSupportedSubprotocols() {
+        return protocols;
     }
 
     public void start() {

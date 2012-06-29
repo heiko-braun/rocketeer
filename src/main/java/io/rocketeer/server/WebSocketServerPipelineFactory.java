@@ -6,6 +6,8 @@ package io.rocketeer.server;
  */
 
 import io.rocketeer.ContainerCallback;
+import io.rocketeer.protocol.ProtocolDef;
+import org.jboss.netty.channel.ChannelHandler;
 import org.jboss.netty.channel.ChannelPipeline;
 import org.jboss.netty.channel.ChannelPipelineFactory;
 import org.jboss.netty.handler.codec.http.HttpChunkAggregator;
@@ -38,6 +40,17 @@ public class WebSocketServerPipelineFactory implements ChannelPipelineFactory {
         pipeline.addLast("aggregator", new HttpChunkAggregator(65536));
         pipeline.addLast("encoder", new HttpResponseEncoder());
         pipeline.addLast("handler", new WebSocketServerHandler(callback, registry));
+
+        // insert protocols
+        for(ProtocolDef def : registry.getSupportedSubprotocols())
+        {
+            int i=0;
+            for(ChannelHandler handler : def.getHandlerList())
+            {
+                pipeline.addLast(def.getName()+"_"+i, handler);
+                i++;
+            }
+        }
 
         // invocation happens behind execution handler
         pipeline.addLast("exec", execHandler);

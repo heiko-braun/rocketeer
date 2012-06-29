@@ -15,6 +15,8 @@ import org.projectodd.stilts.stomp.client.helpers.MessageAccumulator;
 
 import java.net.URI;
 
+import static org.junit.Assert.assertTrue;
+
 /**
  * @author Heiko Braun
  * @date 6/29/12
@@ -71,6 +73,10 @@ public class StompProtocolTest {
         subscription1.unsubscribe();
         subscription2.unsubscribe();             */
 
+
         client.disconnect();
+
+        Thread.sleep(1000);
+        assertTrue(client.isDisconnected());
     }
 }
