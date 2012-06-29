@@ -45,26 +45,29 @@ public class WebSocketClientHandler extends SimpleChannelHandler {
     }
 
     @Override
-    public void channelDisconnected(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+    public void disconnectRequested(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 
-         // TODO: closing can be initiated from both sides
+        // TODO: closing can be initiated from both sides
         if(!isClosing && ctx.getChannel().isOpen())
         {
-            final ChannelFuture channelFuture = ctx.getChannel().write(
-                    new CloseWebSocketFrame(1000, "Bye")
-            );
-
-            channelFuture.addListener(new ChannelFutureListener() {
-                public void operationComplete(ChannelFuture future) throws Exception {
-                    String sessionId = ChannelRef.sessionId.get(ctx.getChannel());
-                    if(future.isSuccess())
-                        log.debug("Client did send closing frame {}", sessionId);
-                }
-            });
+            sendClosingFrame(ctx, new CloseWebSocketFrame());
 
             isClosing = true;
         }
 
+    }
+
+    private void sendClosingFrame(final ChannelHandlerContext ctx, CloseWebSocketFrame frame) {
+
+        final ChannelFuture channelFuture = ctx.getChannel().write(frame);
+
+        channelFuture.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+                String sessionId = ChannelRef.sessionId.get(ctx.getChannel());
+                if(future.isSuccess())
+                    log.debug("Client did send closing frame {}", sessionId);
+            }
+        });
     }
 
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
@@ -89,16 +92,17 @@ public class WebSocketClientHandler extends SimpleChannelHandler {
 
         WebSocketFrame frame = (WebSocketFrame) e.getMessage();
 
-        // TODO
         if (frame instanceof PongWebSocketFrame)
         {
-            System.out.println("Client received pong frame");
+            log.debug("Client received pong frame");
         }
         else if (frame instanceof CloseWebSocketFrame) {
 
-            // TODO: closing may be initiated from both sides
-            // check the state and eventually respond with a closing frame
-            log.debug("Client did receive closing frame {}", ChannelRef.sessionId.get(ctx.getChannel()));
+            if(!isClosing)
+            {
+                sendClosingFrame(ctx, (CloseWebSocketFrame)frame);
+                ctx.getChannel().close();
+            }
         }
         else
         {

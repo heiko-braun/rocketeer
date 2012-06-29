@@ -10,7 +10,7 @@ import io.rocketeer.Session;
  */
 public class EchoClient extends Endpoint {
 
-    public static final String TEST_MESSAGE = "Testing this WebSocket";
+    public static final String TEST_MESSAGE = "Hello World";
     private boolean connected = false;
     private String messageReceived = null;
     private Session session;

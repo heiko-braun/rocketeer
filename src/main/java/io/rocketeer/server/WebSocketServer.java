@@ -130,12 +130,8 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
 
                         public void onDisconnect(ChannelHandlerContext context) {
                             final NettySession session = findSession(context.getChannel());
-                            if(session.isActive())
-                                session.close();
-
-                            log.debug("Session removed {}", session.getId());
-
                             sessions.remove(session);
+                            log.debug("Session removed {}", session.getId());
                         }
 
                         public void onMessage(ChannelHandlerContext context, WebSocketFrame frame) {

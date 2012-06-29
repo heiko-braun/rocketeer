@@ -16,7 +16,6 @@ import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
 import org.jboss.netty.channel.SimpleChannelHandler;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.UpstreamMessageEvent;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
 import org.jboss.netty.handler.codec.http.HttpHeaders;
@@ -43,11 +42,13 @@ import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
 public class WebSocketServerHandler extends SimpleChannelHandler {
 
-    private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
+    private final static Logger log = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
     private WebSocketServerHandshaker handshaker;
     private ContainerCallback callback;
     private ProtocolRegistry protocolRegistry;
+
+    private boolean isClosing = false;
 
     public WebSocketServerHandler(ContainerCallback callback, ProtocolRegistry protocolRegistry) {
         this.callback = callback;
@@ -55,8 +56,32 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
     }
 
     @Override
-    public void disconnectRequested(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
-        super.disconnectRequested(ctx, e);
+    public void disconnectRequested(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+
+        // TODO: closing can be initiated from both sides
+        if(!isClosing && ctx.getChannel().isOpen())
+        {
+            sendClosingFrame(ctx, new CloseWebSocketFrame());
+            isClosing = true;
+        }
+
+    }
+
+    private void sendClosingFrame(final ChannelHandlerContext ctx, CloseWebSocketFrame frame) {
+
+        final ChannelFuture channelFuture = handshaker.close(ctx.getChannel(), frame);
+
+        channelFuture.addListener(new ChannelFutureListener() {
+            public void operationComplete(ChannelFuture future) throws Exception {
+                String sessionId = ChannelRef.sessionId.get(ctx.getChannel());
+                if(future.isSuccess())
+                    log.debug("Server did send closing frame {}", sessionId);
+            }
+        });
+    }
+
+    public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        callback.onDisconnect(ctx);
     }
 
     @Override
@@ -141,9 +166,13 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
 
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
-            logger.debug("Closing connection {}", ChannelRef.sessionId.get(ctx.getChannel()));
-            handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
-            ctx.getChannel().close();
+
+            if(!isClosing)
+            {
+                sendClosingFrame(ctx, (CloseWebSocketFrame)frame);
+                ctx.getChannel().close();
+            }
+
             return;
         } else if (frame instanceof PingWebSocketFrame) {
             ctx.getChannel().write(new PongWebSocketFrame(frame.getBinaryData()));
@@ -152,7 +181,7 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
         else {
 
             if((frame instanceof TextWebSocketFrame)
-                || (frame instanceof BinaryWebSocketFrame))
+                    || (frame instanceof BinaryWebSocketFrame))
             {
                 // forward to invocation handler
                 ctx.sendUpstream(
@@ -187,7 +216,7 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
     @Override
     public void exceptionCaught(ChannelHandlerContext ctx, ExceptionEvent e)
             throws Exception {
-        logger.error("Exception caught, closing channel", e.getCause());
+        log.error("Exception caught, closing channel", e.getCause());
         e.getChannel().close();
     }
 

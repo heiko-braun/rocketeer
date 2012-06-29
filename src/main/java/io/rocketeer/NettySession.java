@@ -56,7 +56,7 @@ public class NettySession implements Session {
     }
 
     public void close(){
-        Channels.fireChannelDisconnected(ctx.getChannel());
+        Channels.disconnect(ctx.getChannel());
     }
 
     public Endpoint getEndpoint() {
