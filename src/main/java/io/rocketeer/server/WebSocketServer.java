@@ -78,9 +78,10 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
         // netty logging
         InternalLoggerFactory.setDefaultFactory(new Slf4JLoggerFactory());
 
+    }
 
-        // supported subprotocols
-        protocols.add(new StompProtocolDef());
+    public void addProtocolSupport(ProtocolDef protocol) {
+        protocols.add(protocol);
     }
 
     public void registerEndpoint(Endpoint endpoint, ServerConfiguration config) {

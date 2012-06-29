@@ -3,15 +3,11 @@ package io.rocketeer.server;
 import io.rocketeer.Rocketeer;
 import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
+import io.rocketeer.protocol.stomp.StompProtocolDef;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
-import org.projectodd.stilts.stomp.StompMessages;
-import org.projectodd.stilts.stomp.Subscription;
-import org.projectodd.stilts.stomp.client.ClientSubscription;
-import org.projectodd.stilts.stomp.client.ClientTransaction;
 import org.projectodd.stilts.stomp.client.StompClient;
-import org.projectodd.stilts.stomp.client.helpers.MessageAccumulator;
 
 import java.net.URI;
 
@@ -33,6 +29,9 @@ public class StompProtocolTest {
                 new StompEndpoint(),
                 new ServerConfiguration(new URI("/stomp"))
         );
+
+        server.addProtocolSupport(new StompProtocolDef());
+
         server.start();
     }
 

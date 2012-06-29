@@ -1,5 +1,7 @@
 package io.rocketeer;
 
+import io.rocketeer.protocol.ProtocolDef;
+
 /**
  *
  * <pre>
@@ -14,6 +16,8 @@ package io.rocketeer;
  *
  */
 public interface ServerContainer extends ClientContainer {
+
+    void addProtocolSupport(ProtocolDef protocol);
     void registerEndpoint(Endpoint endpoint, ServerConfiguration ilc);
     void start();
     void stop();
