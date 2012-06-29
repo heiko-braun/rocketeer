@@ -36,7 +36,7 @@ public class EchoClient extends Endpoint {
     @Override
     public void hasClosed(Session session) {
         connected = false;
-        System.out.println("Client disconnected");
+        System.out.println("Echo client disconnected");
     }
 
     public boolean isConnected() {

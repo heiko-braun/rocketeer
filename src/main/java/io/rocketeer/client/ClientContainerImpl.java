@@ -7,6 +7,7 @@ import io.rocketeer.Endpoint;
 import io.rocketeer.MessageListener;
 import io.rocketeer.Session;
 import io.rocketeer.NettySession;
+import io.rocketeer.server.ChannelRef;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelLocal;
@@ -31,8 +32,6 @@ public class ClientContainerImpl implements ClientContainer {
 
     private Map<String, Endpoint> endpoints = new HashMap<String, Endpoint>();
     private List<NettySession> sessions = new CopyOnWriteArrayList<NettySession>();
-
-    private static final ChannelLocal<String> channelSessionId = new ChannelLocal<String>();
 
     public void connect(final Endpoint endpoint, final ClientConfiguration config) {
         WebSocketClientFactory clientFactory = new WebSocketClientFactory();
@@ -81,7 +80,7 @@ public class ClientContainerImpl implements ClientContainer {
 
     private NettySession findSession(Channel channel)
     {
-        String sessionId = channelSessionId.get(channel);
+        String sessionId = ChannelRef.sessionId.get(channel);
         NettySession match = null;
         for(NettySession session : sessions)
         {
@@ -100,7 +99,7 @@ public class ClientContainerImpl implements ClientContainer {
 
     private void provideSession(ChannelHandlerContext context, Endpoint endpoint, ClientConfiguration config) {
         NettySession session = new NettySession(context, endpoint);
-        channelSessionId.set(context.getChannel(), session.getId());
+        ChannelRef.sessionId.set(context.getChannel(), session.getId());
 
         log.debug("Session created {}", session.getId());
 

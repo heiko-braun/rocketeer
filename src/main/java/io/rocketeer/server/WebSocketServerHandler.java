@@ -11,9 +11,11 @@ import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.Channels;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
+import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
 import org.jboss.netty.channel.UpstreamMessageEvent;
 import org.jboss.netty.handler.codec.http.DefaultHttpResponse;
@@ -39,7 +41,7 @@ import static org.jboss.netty.handler.codec.http.HttpMethod.GET;
 import static org.jboss.netty.handler.codec.http.HttpResponseStatus.*;
 import static org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1;
 
-public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
+public class WebSocketServerHandler extends SimpleChannelHandler {
 
     private final static Logger logger = LoggerFactory.getLogger(WebSocketServerHandler.class);
 
@@ -50,6 +52,11 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
     public WebSocketServerHandler(ContainerCallback callback, ProtocolRegistry protocolRegistry) {
         this.callback = callback;
         this.protocolRegistry = protocolRegistry;
+    }
+
+    @Override
+    public void disconnectRequested(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+        super.disconnectRequested(ctx, e);
     }
 
     @Override
@@ -134,7 +141,7 @@ public class WebSocketServerHandler extends SimpleChannelUpstreamHandler {
 
         // Check for closing frame
         if (frame instanceof CloseWebSocketFrame) {
-            logger.debug("Closing connection {}", ctx.getChannel().getId());
+            logger.debug("Closing connection {}", ChannelRef.sessionId.get(ctx.getChannel()));
             handshaker.close(ctx.getChannel(), (CloseWebSocketFrame) frame);
             ctx.getChannel().close();
             return;

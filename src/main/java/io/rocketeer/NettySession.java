@@ -3,6 +3,8 @@ package io.rocketeer;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
+import org.jboss.netty.channel.Channels;
+import org.jboss.netty.channel.DownstreamChannelStateEvent;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.slf4j.Logger;
@@ -54,16 +56,7 @@ public class NettySession implements Session {
     }
 
     public void close(){
-        //final ChannelFuture channelFuture = ctx.getChannel().write(new CloseWebSocketFrame());
-        final ChannelFuture channelFuture = ctx.getChannel().close();
-        channelFuture.addListener(new ChannelFutureListener() {
-            public void operationComplete(ChannelFuture future) throws Exception {
-                if(future.isSuccess())
-                    log.debug("Session close {}", getId());
-                else
-                    log.error("Failed to close Session {}", getId(), future.getCause());
-    }
-        });
+        Channels.fireChannelDisconnected(ctx.getChannel());
     }
 
     public Endpoint getEndpoint() {

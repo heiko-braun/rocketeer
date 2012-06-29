@@ -6,18 +6,23 @@ package io.rocketeer.client;
  */
 
 import io.rocketeer.ContainerCallback;
+import io.rocketeer.server.ChannelRef;
 import org.jboss.netty.channel.Channel;
+import org.jboss.netty.channel.ChannelFuture;
+import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.ChannelStateEvent;
 import org.jboss.netty.channel.ExceptionEvent;
 import org.jboss.netty.channel.MessageEvent;
-import org.jboss.netty.channel.SimpleChannelUpstreamHandler;
+import org.jboss.netty.channel.SimpleChannelHandler;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketClientHandshaker;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.util.CharsetUtil;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 /**
  * Handles socket communication for a connected WebSocket client
@@ -25,10 +30,14 @@ import org.jboss.netty.util.CharsetUtil;
  * or {@link io.rocketeer.ContainerCallback} for controlling your client.
  *
  */
-public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
+public class WebSocketClientHandler extends SimpleChannelHandler {
+
+    private final static Logger log = LoggerFactory.getLogger(WebSocketClientHandler.class);
 
     private ContainerCallback callback;
     private final WebSocketClientHandshaker handshaker;
+
+    private boolean isClosing = false;
 
     public WebSocketClientHandler(WebSocketClientHandshaker handshaker, ContainerCallback callback) {
         this.handshaker = handshaker;
@@ -36,6 +45,28 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
+    public void channelDisconnected(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
+
+         // TODO: closing can be initiated from both sides
+        if(!isClosing && ctx.getChannel().isOpen())
+        {
+            final ChannelFuture channelFuture = ctx.getChannel().write(
+                    new CloseWebSocketFrame(1000, "Bye")
+            );
+
+            channelFuture.addListener(new ChannelFutureListener() {
+                public void operationComplete(ChannelFuture future) throws Exception {
+                    String sessionId = ChannelRef.sessionId.get(ctx.getChannel());
+                    if(future.isSuccess())
+                        log.debug("Client did send closing frame {}", sessionId);
+                }
+            });
+
+            isClosing = true;
+        }
+
+    }
+
     public void channelClosed(ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
         callback.onDisconnect(ctx);
     }
@@ -64,8 +95,10 @@ public class WebSocketClientHandler extends SimpleChannelUpstreamHandler {
             System.out.println("Client received pong frame");
         }
         else if (frame instanceof CloseWebSocketFrame) {
-            System.out.println("Client received closing frame");
-            ch.close();
+
+            // TODO: closing may be initiated from both sides
+            // check the state and eventually respond with a closing frame
+            log.debug("Client did receive closing frame {}", ChannelRef.sessionId.get(ctx.getChannel()));
         }
         else
         {
