@@ -47,6 +47,8 @@ public class WebSocketClientHandler extends SimpleChannelHandler {
     @Override
     public void disconnectRequested(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 
+        log.debug("Disconnect requested ...");
+
         // TODO: closing can be initiated from both sides
         if(!isClosing && ctx.getChannel().isOpen())
         {

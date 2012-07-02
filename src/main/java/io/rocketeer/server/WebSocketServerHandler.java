@@ -59,6 +59,7 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
     @Override
     public void disconnectRequested(final ChannelHandlerContext ctx, ChannelStateEvent e) throws Exception {
 
+        log.debug("Disconnect requested ...");
         if(!isClosing && ctx.getChannel().isOpen())
         {
             sendClosingFrame(ctx, new CloseWebSocketFrame());
@@ -156,12 +157,13 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
             // if the handshake fails it will throw en exception ...
             final ChannelFuture handshake = handshaker.handshake(ctx.getChannel(), req);
 
-            // at this point the subprotocol should be selected
-            ChannelRef.subprotocol.set(ctx.getChannel(), handshaker.getSelectedSubprotocol());
-
-            // notify container to create the session
+            // if handshake succeeds create the session
             handshake.addListener(new ChannelFutureListener() {
                 public void operationComplete(ChannelFuture future) throws Exception {
+
+                    // at this point the subprotocol should be selected
+                    ChannelRef.subprotocol.set(ctx.getChannel(), handshaker.getSelectedSubprotocol());
+
                     if (!future.isSuccess()) {
                         Channels.fireExceptionCaught(future.getChannel(), future.getCause());
                     }
@@ -171,6 +173,7 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
                     }
                 }
             });
+
         }
     }
 
