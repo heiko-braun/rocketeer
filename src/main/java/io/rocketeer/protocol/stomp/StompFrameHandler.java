@@ -1,5 +1,7 @@
 package io.rocketeer.protocol.stomp;
 
+import org.jboss.netty.buffer.ChannelBuffers;
+import org.jboss.netty.buffer.ReadOnlyChannelBuffer;
 import org.jboss.netty.channel.ChannelFuture;
 import org.jboss.netty.channel.ChannelFutureListener;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -28,13 +30,17 @@ public class StompFrameHandler extends SimpleChannelHandler {
 
             if(frame.getCommand().equals(CONNECT))
             {
+                // If the accept-version header is missing,
+                // it means that the client only supports version 1.0 of the protocol.
                 String acceptVersion = frame.getHeader(StompFrame.Header.VERSION) != null ?
-                        frame.getHeader(StompFrame.Header.VERSION) : "1.1";
+                        frame.getHeader(StompFrame.Header.VERSION) : "1.0";
 
                 if(acceptVersion.indexOf("1.1") == -1)
                 {
-                    log.warn("Unsupported stomp protocol version: "+acceptVersion);
-                    final StompFrame error = new StompFrame(ERROR);
+                    final String errMsg = "Unsupported stomp protocol version: " + acceptVersion;
+                    log.warn(errMsg);
+                    final StompContentFrame error = new StompContentFrame(ERROR);
+                    error.setContent(ChannelBuffers.copiedBuffer(errMsg.getBytes()));
                     ctx.getChannel().write(error);
                     Channels.disconnect(ctx.getChannel());
                     return;
