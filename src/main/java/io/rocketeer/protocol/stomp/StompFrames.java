@@ -20,7 +20,7 @@ import org.jboss.netty.buffer.ChannelBuffers;
 
 public class StompFrames {
 
-    public static StompFrame newAckFrame(org.projectodd.stilts.stomp.Headers headers) {
+    public static StompFrame newAckFrame(Headers headers) {
         StompControlFrame frame = new StompControlFrame( StompFrame.Command.ACK );
         frame.setHeader( StompFrame.Header.MESSAGE_ID, headers.get( StompFrame.Header.MESSAGE_ID ) );
         frame.setHeader( StompFrame.Header.SUBSCRIPTION, headers.get( StompFrame.Header.SUBSCRIPTION ) );
@@ -31,7 +31,7 @@ public class StompFrames {
         return frame;
     }
 
-    public static StompFrame newNackFrame(org.projectodd.stilts.stomp.Headers headers) {
+    public static StompFrame newNackFrame(Headers headers) {
         StompControlFrame frame = new StompControlFrame( StompFrame.Command.NACK );
         frame.setHeader( StompFrame.Header.MESSAGE_ID, headers.get( StompFrame.Header.MESSAGE_ID ) );
         frame.setHeader( StompFrame.Header.SUBSCRIPTION, headers.get( StompFrame.Header.SUBSCRIPTION ) );

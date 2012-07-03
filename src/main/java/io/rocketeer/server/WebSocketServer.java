@@ -14,7 +14,6 @@ import io.rocketeer.ServerConfiguration;
 import io.rocketeer.ServerContainer;
 import io.rocketeer.Session;
 import io.rocketeer.protocol.ProtocolDef;
-import io.rocketeer.protocol.stomp.StompProtocolDef;
 import org.jboss.netty.bootstrap.ServerBootstrap;
 import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
@@ -29,6 +28,7 @@ import org.jboss.netty.logging.Slf4JLoggerFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.transaction.TransactionManager;
 import java.net.InetSocketAddress;
 import java.util.Collections;
 import java.util.HashMap;
@@ -126,6 +126,7 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
                             if(null==endpoint)
                                 throw new RuntimeException("Invalid endpoint "+ webContext);
 
+
                             final NettySession session = new NettySession(context, endpoint);
                             ChannelRef.sessionId.set(context.getChannel(), session.getId());
                             sessions.add(session);
@@ -212,6 +213,10 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
         bootstrap.releaseExternalResources();
         executionHandler.releaseExternalResources();
         log.info("Server successfully shutdown.");
+    }
+
+    public TransactionManager getTransactionManager() {
+        return null;  //To change body of implemented methods use File | Settings | File Templates.
     }
 }
 

@@ -2,6 +2,8 @@ package io.rocketeer;
 
 import io.rocketeer.protocol.ProtocolDef;
 
+import javax.transaction.TransactionManager;
+
 /**
  *
  * <pre>
@@ -21,4 +23,6 @@ public interface ServerContainer extends ClientContainer {
     void registerEndpoint(Endpoint endpoint, ServerConfiguration ilc);
     void start();
     void stop();
+
+    TransactionManager getTransactionManager();
 }

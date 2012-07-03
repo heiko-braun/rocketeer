@@ -10,4 +10,6 @@ public interface ClientContainer {
     void connect(Endpoint endpoint, ClientConfiguration config);
 
     List<? extends Session> getActiveSessions();
+
+
 }
