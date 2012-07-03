@@ -1,0 +1,63 @@
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
+
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>autobahn-vehicle</artifactId>
+    <groupId>io.rocketeer</groupId>
+    <packaging>jar</packaging>
+
+    <version>1.0.0-SNAPSHOT</version>
+
+    <name>Autobahn Test Vehicle</name>
+
+
+    <properties>
+        <netty.version>3.5.1.Final</netty.version>
+        <slf4j.version>1.6.6</slf4j.version>
+        <logback.version>1.0.6</logback.version>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.rocketeer</groupId>
+            <artifactId>rocketeer-server</artifactId>
+            <version>${version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>ch.qos.logback</groupId>
+            <artifactId>logback-classic</artifactId>
+            <version>${logback.version}</version>
+            <scope>runtime</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.codehaus.mojo</groupId>
+                <artifactId>exec-maven-plugin</artifactId>
+                <version>1.2</version>
+                <configuration>
+                    <classpathScope>test</classpathScope>
+                    <executable>java</executable>
+                    <arguments>
+                        <argument>-showversion</argument>
+                        <argument>-Xmx512m</argument>
+                        <argument>-Xms512m</argument>
+                        <argument>-Xmn256m</argument>
+                        <argument>-XX:+PrintCommandLineFlags</argument>
+                        <argument>-verbose:gc</argument>
+                        <argument>-XX:+UseParallelOldGC</argument>
+                        <argument>-XX:-UseAdaptiveSizePolicy</argument>
+                        <argument>-cp</argument>
+                        <classpath />
+                        <argument>io.rocketeer.autobahn.TestServer</argument>
+                        <argument>9002</argument>
+                    </arguments>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>
+
