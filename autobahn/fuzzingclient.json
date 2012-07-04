@@ -1,0 +1,14 @@
+{
+   "options": {"failByDrop": false},
+   "outdir": "./target/reports/servers",
+
+   "servers": [
+                {"agent": "RocketeerServer",
+                 "url": "ws://localhost:9002/echo",
+                 "options": {"version": 18}}
+              ],
+
+   "cases": ["*"],
+   "exclude-cases": ["10.*"],
+   "exclude-agent-cases": {}
+}
