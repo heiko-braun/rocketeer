@@ -14,10 +14,13 @@ import java.net.URI;
 public class TestServer {
     public static void main(String[] args) throws Exception
     {
-        if(args.length == 0)
-            throw new IllegalArgumentException("Port number argument is missing");
 
-        ServerContainer server = Rocketeer.createServer(Integer.valueOf(args[0]));
+        int port = 9002;
+
+        if(args.length > 0)
+            port = Integer.valueOf(args[0]);
+
+        ServerContainer server = Rocketeer.createServer(port);
         server.registerEndpoint(new EchoEndpoint(), new ServerConfiguration(new URI("/echo"))
         );
         server.start();
