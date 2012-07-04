@@ -19,6 +19,7 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.handler.execution.ExecutionHandler;
@@ -114,7 +115,7 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
 
             // TODO: How the the core pool size relate to the worker executor? Does it at all?
             executionHandler = new ExecutionHandler(
-                         new OrderedMemoryAwareThreadPoolExecutor(16, 0, 0));
+                    new OrderedMemoryAwareThreadPoolExecutor(16, 0, 0));
 
             // Set up the event pipeline factory.
             bootstrap.setPipelineFactory(
@@ -147,8 +148,9 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
                         public void onMessage(ChannelHandlerContext context, WebSocketFrame frame) {
 
                             // we only support common frames at tis level
-                            if (!(frame instanceof TextWebSocketFrame)
-                                    || (frame instanceof BinaryWebSocketFrame)) {
+                            if (!((frame instanceof TextWebSocketFrame)
+                                    ||  (frame instanceof BinaryWebSocketFrame)
+                                    || (frame instanceof ContinuationWebSocketFrame))) {
 
                                 throw new UnsupportedOperationException(
                                         String.format("%s frame types not supported", frame.getClass().getName())
@@ -159,12 +161,41 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
                             final NettySession session = findSession(context.getChannel());
                             for(MessageListener listener : session.getListeners())
                             {
-                                if(listener instanceof MessageListener.Text)
+
+                                // regular frames
+
+                                if(listener instanceof MessageListener.Text
+                                        && frame instanceof TextWebSocketFrame)
                                 {
                                     ((MessageListener.Text)listener).onMessage(
                                             ((TextWebSocketFrame)frame).getText()
                                     );
                                 }
+                                else if(listener instanceof MessageListener.Binary
+                                        && frame instanceof BinaryWebSocketFrame)
+                                {
+                                    ((MessageListener.Binary)listener).onMessage(
+                                            ((BinaryWebSocketFrame)frame).getBinaryData().array()
+                                    );
+                                }
+
+                                // continuation frames
+
+                                else if(listener instanceof MessageListener.Text
+                                        && frame instanceof ContinuationWebSocketFrame)
+                                {
+                                    ((MessageListener.Text)listener).onMessage(
+                                            ((ContinuationWebSocketFrame)frame).getAggregatedText()
+                                    );
+                                }
+                                else if(listener instanceof MessageListener.Binary
+                                        && frame instanceof ContinuationWebSocketFrame)
+                                {
+                                    ((MessageListener.Binary)listener).onMessage(
+                                            ((ContinuationWebSocketFrame)frame).getBinaryData().array()
+                                    );
+                                }
+
                             }
                         }
 

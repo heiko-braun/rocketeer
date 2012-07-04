@@ -24,6 +24,7 @@ import org.jboss.netty.handler.codec.http.HttpRequest;
 import org.jboss.netty.handler.codec.http.HttpResponse;
 import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PingWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.PongWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
@@ -196,7 +197,8 @@ public class WebSocketServerHandler extends SimpleChannelHandler {
         else {
 
             if((frame instanceof TextWebSocketFrame)
-                    || (frame instanceof BinaryWebSocketFrame))
+                    || (frame instanceof BinaryWebSocketFrame)
+                    || (frame instanceof ContinuationWebSocketFrame))
             {
                 // forward to invocation handler
                 ctx.sendUpstream(

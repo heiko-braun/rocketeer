@@ -1,11 +1,9 @@
 package io.rocketeer;
 
-import org.jboss.netty.channel.ChannelFuture;
-import org.jboss.netty.channel.ChannelFutureListener;
+import org.jboss.netty.buffer.ChannelBuffers;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.Channels;
-import org.jboss.netty.channel.DownstreamChannelStateEvent;
-import org.jboss.netty.handler.codec.http.websocketx.CloseWebSocketFrame;
+import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -50,7 +48,13 @@ public class NettySession implements Session {
             }
 
             public void sendBytes(byte[] data) {
-               throw new RuntimeException("Not implemented yet");
+
+                // TODO: prevent copies
+                ctx.getChannel().write(
+                        new BinaryWebSocketFrame(
+                                ChannelBuffers.copiedBuffer(data)
+                        )
+                );
             }
         };
     }

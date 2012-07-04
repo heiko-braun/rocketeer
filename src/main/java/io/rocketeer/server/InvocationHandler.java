@@ -21,13 +21,24 @@ public class InvocationHandler extends SimpleChannelUpstreamHandler {
     }
 
     @Override
-        public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
+    public void messageReceived(ChannelHandlerContext ctx, MessageEvent e) throws Exception {
 
-            log.debug("Selected subprotocol '{}'", ChannelRef.subprotocol.get(ctx.getChannel()));
+        log.debug("Selected subprotocol '{}'", ChannelRef.subprotocol.get(ctx.getChannel()));
 
-            Object msg = e.getMessage();
-            if (msg instanceof WebSocketFrame) {
-                callback.onMessage(ctx, (WebSocketFrame)msg);
+        Object msg = e.getMessage();
+        if (msg instanceof WebSocketFrame) {
+
+            WebSocketFrame frame = (WebSocketFrame)msg;
+
+            // only deal with final fragments
+            if(!frame.isFinalFragment())
+            {
+                ctx.sendUpstream(e);
+                return;
             }
+
+
+            callback.onMessage(ctx, (WebSocketFrame)msg);
         }
+    }
 }
