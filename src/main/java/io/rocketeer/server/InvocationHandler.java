@@ -55,6 +55,9 @@ public class InvocationHandler extends SimpleChannelUpstreamHandler {
             // // the last frame of a sequence
             else if(frame.isFinalFragment() && fragmentBuffer!=null)
             {
+
+                fragmentBuffer.writeBytes(frame.getBinaryData());
+
                 WebSocketFrame aggregate = initialFrameBinary ?
                         new BinaryWebSocketFrame(fragmentBuffer) : new TextWebSocketFrame(fragmentBuffer);
 
