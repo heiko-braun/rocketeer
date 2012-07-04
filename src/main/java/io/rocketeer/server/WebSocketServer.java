@@ -19,7 +19,6 @@ import org.jboss.netty.channel.Channel;
 import org.jboss.netty.channel.ChannelHandlerContext;
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory;
 import org.jboss.netty.handler.codec.http.websocketx.BinaryWebSocketFrame;
-import org.jboss.netty.handler.codec.http.websocketx.ContinuationWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.TextWebSocketFrame;
 import org.jboss.netty.handler.codec.http.websocketx.WebSocketFrame;
 import org.jboss.netty.handler.execution.ExecutionHandler;
@@ -149,8 +148,7 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
 
                             // we only support common frames at tis level
                             if (!((frame instanceof TextWebSocketFrame)
-                                    ||  (frame instanceof BinaryWebSocketFrame)
-                                    || (frame instanceof ContinuationWebSocketFrame))) {
+                                    ||  (frame instanceof BinaryWebSocketFrame))) {
 
                                 throw new UnsupportedOperationException(
                                         String.format("%s frame types not supported", frame.getClass().getName())
@@ -177,31 +175,6 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
                                     ((MessageListener.Binary)listener).onMessage(
                                             ((BinaryWebSocketFrame)frame).getBinaryData().array()
                                     );
-                                }
-
-                                // continuation frames
-
-                                else if(frame instanceof ContinuationWebSocketFrame)
-                                {
-
-                                    final ContinuationWebSocketFrame contFrame =
-                                            (ContinuationWebSocketFrame) frame;
-
-                                    if(listener instanceof MessageListener.Text
-                                            && !contFrame.isInitialTypeBinary())
-                                    {
-                                        ((MessageListener.Text)listener).onMessage(
-                                                contFrame.getText()
-                                        );
-                                    }
-                                    else if(listener instanceof MessageListener.Binary
-                                            && contFrame.isInitialTypeBinary())
-                                    {
-                                        ((MessageListener.Binary)listener).onMessage(
-                                                contFrame.getBinaryData().array()
-                                        );
-
-                                    }
                                 }
 
                             }
