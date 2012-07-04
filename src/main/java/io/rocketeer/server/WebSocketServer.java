@@ -181,19 +181,27 @@ public class WebSocketServer implements ServerContainer, ProtocolRegistry {
 
                                 // continuation frames
 
-                                else if(listener instanceof MessageListener.Text
-                                        && frame instanceof ContinuationWebSocketFrame)
+                                else if(frame instanceof ContinuationWebSocketFrame)
                                 {
-                                    ((MessageListener.Text)listener).onMessage(
-                                            ((ContinuationWebSocketFrame)frame).getAggregatedText()
-                                    );
-                                }
-                                else if(listener instanceof MessageListener.Binary
-                                        && frame instanceof ContinuationWebSocketFrame)
-                                {
-                                    ((MessageListener.Binary)listener).onMessage(
-                                            ((ContinuationWebSocketFrame)frame).getBinaryData().array()
-                                    );
+
+                                    final ContinuationWebSocketFrame contFrame =
+                                            (ContinuationWebSocketFrame) frame;
+
+                                    if(listener instanceof MessageListener.Text
+                                            && !contFrame.isInitialTypeBinary())
+                                    {
+                                        ((MessageListener.Text)listener).onMessage(
+                                                contFrame.getText()
+                                        );
+                                    }
+                                    else if(listener instanceof MessageListener.Binary
+                                            && contFrame.isInitialTypeBinary())
+                                    {
+                                        ((MessageListener.Binary)listener).onMessage(
+                                                contFrame.getBinaryData().array()
+                                        );
+
+                                    }
                                 }
 
                             }
